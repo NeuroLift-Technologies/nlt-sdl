@@ -19,6 +19,10 @@ on:
 jobs:
   conformance:
     runs-on: ubuntu-latest
+    env:
+      # Hoisted to env so it can be used in step `if:` conditions
+      # (the `secrets` context is not allowed directly in `if`).
+      CANON_REPO_TOKEN: ${{ secrets.CANON_REPO_TOKEN }}
     steps:
       - name: Checkout nlt-sdl
         uses: actions/checkout@v4
@@ -46,23 +50,23 @@ jobs:
 
       # --- Canon-backed full suite (requires CANON_REPO_TOKEN) ---------------
       - name: Checkout canonical rrt-advocate
-        if: ${{ secrets.CANON_REPO_TOKEN != '' }}
+        if: ${{ env.CANON_REPO_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: NeuroLift-Technologies/rrt-advocate
-          token: ${{ secrets.CANON_REPO_TOKEN }}
+          token: ${{ env.CANON_REPO_TOKEN }}
           path: rrt-advocate
 
       - name: Checkout canonical sleepwalker
-        if: ${{ secrets.CANON_REPO_TOKEN != '' }}
+        if: ${{ env.CANON_REPO_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           repository: NeuroLift-Technologies/sleepwalker
-          token: ${{ secrets.CANON_REPO_TOKEN }}
+          token: ${{ env.CANON_REPO_TOKEN }}
           path: sleepwalker
 
       - name: Full conformance suite (against canon)
-        if: ${{ secrets.CANON_REPO_TOKEN != '' }}
+        if: ${{ env.CANON_REPO_TOKEN != '' }}
         working-directory: nlt-sdl
         env:
           RRT_ADVOCATE_SRC: ${{ github.workspace }}/rrt-advocate/src
