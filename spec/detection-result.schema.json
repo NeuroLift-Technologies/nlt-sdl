@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurolift.tech/schemas/nlt-sdl/detection-result-1.0.0.json",
+  "title": "DetectionResult",
+  "description": "Canonical output contract for the NLT State Detection Layer (NLT-SPEC-SDL-1.0.0). Every conformant implementation, in any language, MUST emit an object validating against this schema for every observed turn. Safety-critical: this contract routes crisis response and MUST fail closed. It is NOT a clinical or diagnostic instrument.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rrta",
+    "sleepwalker",
+    "enabler",
+    "recommendedMode",
+    "responseConstraints",
+    "escalateToHuman",
+    "meta"
+  ],
+  "properties": {
+    "rrta": {
+      "$ref": "#/$defs/RrtaResult"
+    },
+    "sleepwalker": {
+      "$ref": "#/$defs/SleepwalkerResult"
+    },
+    "enabler": {
+      "$ref": "#/$defs/EnablerResult"
+    },
+    "recommendedMode": {
+      "description": "Coarse routing mode the downstream response router consumes. The detector recommends; it never composes the model response itself.",
+      "type": "string",
+      "enum": [
+        "standard",
+        "rrta_soft_scaffold",
+        "rrta_stabilize",
+        "rrta_crisis_human_routing",
+        "sleepwalker_reorient",
+        "sleepwalker_reconsent",
+        "enabler_agency_support",
+        "emergency_human_routing"
+      ]
+    },
+    "responseConstraints": {
+      "description": "Constraints the response router MUST honor when assembling the model call. Additive and order-independent.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "reduce_to_one_next_step",
+          "no_large_lists",
+          "preserve_choice",
+          "avoid_shame_language",
+          "slow_pace",
+          "offer_human_support",
+          "surface_crisis_resources",
+          "confirm_continuity",
+          "reaffirm_consent",
+          "encourage_self_direction"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "suggestedPersona": {
+      "description": "Optional persona hint for the response router. Absent or null when the detector has no preference.",
+      "type": ["string", "null"],
+      "enum": ["ash", "sol", "echo", "kai", "myra", null]
+    },
+    "escalateToHuman": {
+      "description": "Hard routing flag. When true, the turn MUST be routed to a human / crisis resource path. MUST be true whenever any explicit hard-distress signal is present OR meta.failClosed is true. Once true it can never be silently downgraded within a turn.",
+      "type": "boolean"
+    },
+    "meta": {
+      "$ref": "#/$defs/Meta"
+    }
+  },
+  "$defs": {
+    "Tier": {
+      "description": "Canonical crisis tier. Ranges are defined in rrt-advocate config/crisis_thresholds.yaml and MUST NOT be redefined by an implementation.",
+      "type": "string",
+      "enum": ["green", "yellow", "orange", "red", "black"]
+    },
+    "Confidence": {
+      "description": "Calibrated confidence in [0,1]. Conformant implementations are certified on calibration of this value, not on accuracy.",
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "RrtaResult": {
+      "description": "Acute, in-session crisis shape. Tier is derived from aggregate confidence against the canonical thresholds. Red/black REQUIRE an explicit hard-distress signal and are never inferred from soft overwhelm alone.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "confidence", "signals", "explicitSignal"],
+      "properties": {
+        "tier": { "$ref": "#/$defs/Tier" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "signals": {
+          "description": "Coarse semantic field labels detected this turn. Never method/means content.",
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "explicitSignal": {
+          "description": "True when an explicit hard-distress signal (e.g. self-harm) was detected. Forces tier=black and escalateToHuman=true.",
+          "type": "boolean"
+        }
+      }
+    },
+    "SleepwalkerResult": {
+      "description": "Deterministic continuity / rupture shape. Fires off facts the host already knows (model/version change, handoff, memory gap, tone shift) plus protective-state detection. Deterministic events bypass the confidence floor.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vulnerable", "events", "signals"],
+      "properties": {
+        "vulnerable": {
+          "description": "True when a protective psychological state or a continuity rupture leaves the user in a vulnerable posture warranting gentler handling.",
+          "type": "boolean"
+        },
+        "events": {
+          "description": "Deterministic continuity events derived from host facts.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "model_change",
+              "version_change",
+              "handoff",
+              "memory_gap",
+              "tone_shift",
+              "new_session"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "signals": {
+          "description": "Protective-state labels detected this turn (e.g. dissociation, numbing, avoidance, detachment).",
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "EnablerResult": {
+      "description": "Longitudinal agency-erosion shape. Reserved in NLT-SPEC-SDL-1.0.0: the contract field is normative but no reference implementation ships in this version. Implementations that do not compute it MUST emit risk='none' with low confidence and an empty signal set, and MUST NOT assert dependency from a single turn.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["risk", "confidence", "agencyTrend", "signals"],
+      "properties": {
+        "risk": {
+          "type": "string",
+          "enum": ["none", "low", "moderate", "elevated"]
+        },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "agencyTrend": {
+          "description": "Signed agency trend across sessions in [-1,1]. 0 when undetermined.",
+          "type": "number",
+          "minimum": -1.0,
+          "maximum": 1.0
+        },
+        "signals": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "Meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failClosed", "notes"],
+      "properties": {
+        "failClosed": {
+          "description": "True when the result was produced by the fail-closed boundary because an underlying detector errored, timed out, or returned an unusable value. A fail-closed result MUST escalate (abstain upward), never downgrade.",
+          "type": "boolean"
+        },
+        "schemaVersion": {
+          "description": "Semantic version of the contract this result targets.",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "notes": {
+          "description": "Free-form diagnostic notes. MUST NOT contain user message content or PII.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

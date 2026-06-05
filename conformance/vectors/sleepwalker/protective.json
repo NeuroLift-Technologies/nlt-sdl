@@ -1,0 +1,46 @@
+[
+  {
+    "id": "sw-dissociation-vulnerable",
+    "requirement": ["R15"],
+    "description": "A protective dissociative state sets vulnerable + a signal, without escalating.",
+    "input": { "message": "i feel numb and detached, kind of disconnected from everything" },
+    "expect": {
+      "schemaValid": true,
+      "sleepwalker": { "vulnerable": true, "signalsInclude": ["dissociation"] },
+      "escalateToHuman": false,
+      "recommendedModeIn": ["sleepwalker_reorient", "rrta_soft_scaffold"]
+    }
+  },
+  {
+    "id": "sw-avoidance-vulnerable",
+    "requirement": ["R15"],
+    "description": "Protective avoidance is recognized as a vulnerable posture, not a crisis.",
+    "input": { "message": "i'm not ready to talk about this, not now" },
+    "expect": {
+      "schemaValid": true,
+      "sleepwalker": { "vulnerable": true },
+      "escalateToHuman": false
+    }
+  },
+  {
+    "id": "sw-crisis-safety-escalates",
+    "requirement": ["R16", "R22"],
+    "description": "An explicit inability-to-stay-safe indicator escalates to human routing.",
+    "input": { "message": "honestly i am not safe right now" },
+    "expect": {
+      "schemaValid": true,
+      "escalateToHuman": true,
+      "recommendedModeIn": ["rrta_crisis_human_routing", "emergency_human_routing"]
+    }
+  },
+  {
+    "id": "sw-crisis-selfharm-escalates",
+    "requirement": ["R16", "R22"],
+    "description": "A Sleepwalker self-harm indicator escalates even when RRTA does not fire.",
+    "input": { "message": "i keep thinking about hurting myself" },
+    "expect": {
+      "schemaValid": true,
+      "escalateToHuman": true
+    }
+  }
+]

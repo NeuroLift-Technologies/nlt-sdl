@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nlt-sdl-reference"
+version = "1.0.0"
+description = "Python reference implementation of the NLT State Detection Layer (NLT-SPEC-SDL-1.0.0). Wraps the canonical rrt-advocate and sleepwalker detectors behind the SDL contract with a fail-closed boundary."
+requires-python = ">=3.10"
+license = { text = "SEE LICENSE IN ../../LICENSE" }
+dependencies = [
+  "jsonschema>=4.0",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Installing VADER improves Layer 2 calibration. The suite passes with or
+# without it (routing-critical guarantees do not depend on it).
+calibration = ["vaderSentiment>=3.3"]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nlt_sdl*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
