@@ -1,0 +1,56 @@
+[
+  {
+    "id": "sw-new-session-event",
+    "requirement": ["R14"],
+    "description": "A new session is reported as a deterministic event (fact, not guess).",
+    "input": { "message": "hi again", "newSession": true },
+    "expect": {
+      "schemaValid": true,
+      "sleepwalker": { "eventsInclude": ["new_session"] },
+      "escalateToHuman": false,
+      "meta": { "failClosed": false }
+    }
+  },
+  {
+    "id": "sw-model-change-event",
+    "requirement": ["R14"],
+    "description": "A model change between turns is a continuity rupture -> vulnerable + event.",
+    "input": {
+      "message": "where were we?",
+      "model": "kimi-k2.5",
+      "prior": { "model": "llama-3.1" }
+    },
+    "expect": {
+      "schemaValid": true,
+      "sleepwalker": { "eventsInclude": ["model_change"], "vulnerable": true },
+      "recommendedModeIn": ["sleepwalker_reorient"],
+      "escalateToHuman": false
+    }
+  },
+  {
+    "id": "sw-tone-shift-event",
+    "requirement": ["R14"],
+    "description": "A tone change between turns is a continuity rupture.",
+    "input": {
+      "message": "ok",
+      "tone": "clinical",
+      "prior": { "tone": "warm" }
+    },
+    "expect": {
+      "schemaValid": true,
+      "sleepwalker": { "eventsInclude": ["tone_shift"], "vulnerable": true },
+      "escalateToHuman": false
+    }
+  },
+  {
+    "id": "sw-memory-gap-event",
+    "requirement": ["R14"],
+    "description": "A long gap since the last turn is a memory-gap rupture.",
+    "input": { "message": "i'm back", "gapSeconds": 1209600 },
+    "expect": {
+      "schemaValid": true,
+      "sleepwalker": { "eventsInclude": ["memory_gap"], "vulnerable": true },
+      "escalateToHuman": false
+    }
+  }
+]

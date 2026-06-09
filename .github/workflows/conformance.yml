@@ -1,0 +1,74 @@
+name: SDL Conformance
+
+# The conformance suite is the safety gate. It runs on every PR and push.
+#
+# Two layers of assurance:
+#   1. Pure policy + fail-closed unit tests and the fault-injection conformance
+#      vectors run with NO canonical sources required.
+#   2. The full conformance suite + canon-backed integration tests run after
+#      checking out the sibling canonical repos. Those are PRIVATE, so this needs
+#      a token with read access to NeuroLift-Technologies/rrt-advocate and
+#      /sleepwalker, stored as the CANON_REPO_TOKEN secret. If the secret is
+#      absent the canon-backed steps are skipped (the canon-free gate still runs).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    env:
+      # Hoisted to env so it can be used in step `if:` conditions
+      # (the `secrets` context is not allowed directly in `if`).
+      CANON_REPO_TOKEN: ${{ secrets.CANON_REPO_TOKEN }}
+    steps:
+      - name: Checkout nlt-sdl
+        uses: actions/checkout@v4
+        with:
+          path: nlt-sdl
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install jsonschema pyyaml pytest
+
+      # --- Canon-free gate (always runs) -------------------------------------
+      - name: Unit tests (policy + fail-closed)
+        working-directory: nlt-sdl
+        run: python -m pytest reference/python/tests -q
+
+      - name: Fail-closed conformance vectors (no canon needed)
+        working-directory: nlt-sdl
+        run: >-
+          python conformance/runner/conformance.py
+          --impl python --category failclosed --skip-requires-canon
+
+      # --- Canon-backed full suite (requires CANON_REPO_TOKEN) ---------------
+      - name: Checkout canonical rrt-advocate
+        if: ${{ env.CANON_REPO_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: NeuroLift-Technologies/rrt-advocate
+          token: ${{ env.CANON_REPO_TOKEN }}
+          path: rrt-advocate
+
+      - name: Checkout canonical sleepwalker
+        if: ${{ env.CANON_REPO_TOKEN != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: NeuroLift-Technologies/sleepwalker
+          token: ${{ env.CANON_REPO_TOKEN }}
+          path: sleepwalker
+
+      - name: Full conformance suite (against canon)
+        if: ${{ env.CANON_REPO_TOKEN != '' }}
+        working-directory: nlt-sdl
+        env:
+          RRT_ADVOCATE_SRC: ${{ github.workspace }}/rrt-advocate/src
+          SLEEPWALKER_ROOT: ${{ github.workspace }}/sleepwalker
+        run: python conformance/runner/conformance.py --impl python

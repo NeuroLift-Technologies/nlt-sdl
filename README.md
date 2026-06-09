@@ -4,7 +4,38 @@ A conservative, rules-based state detector for the Solidarity Framework. One
 interface, three detectors (RRTA / Sleepwalker / Enabler). Built to be dropped
 into your Cloudflare agent and tested — **not** to ship to real users yet.
 
-Files:
+---
+
+## This repo is a spec, not a single codebase
+
+The SDL is defined as a **language-agnostic specification** + a **conformance
+suite** + one or more **conformant reference implementations**. Any
+implementation, in any language, is "SDL-conformant" iff it passes the
+conformance suite.
+
+| Part | Where | What |
+|---|---|---|
+| **Spec** | [`spec/nlt-sdl-spec.md`](spec/nlt-sdl-spec.md) · [`spec/detection-result.schema.json`](spec/detection-result.schema.json) | `NLT-SPEC-SDL-1.0.0`: the `DetectionResult` contract + requirements `R1..R25` |
+| **Conformance suite** | [`conformance/`](conformance/README.md) | The safety gate. Every requirement ≥1 vector; fail-closed vectors mandatory |
+| **Python reference** | [`reference/python/nlt_sdl/`](reference/python/nlt_sdl) | Conformant impl that **wraps** the canonical rrt-advocate + sleepwalker detectors behind the contract, with a fail-closed boundary |
+
+```bash
+python conformance/runner/conformance.py --impl python   # the safety gate
+python -m pytest reference/python/tests -q                # policy + fail-closed unit tests
+```
+
+> **Certified on calibration / fail-closed / recall / equivalence — not
+> "accuracy."** Coarse crisis detection → human routing. **Not** a clinical or
+> diagnostic tool.
+
+The TypeScript files below are the **planned host-agnostic implementation** (a
+future conformant impl that must pass the same suite, R25). They describe the
+contract shape this repo's spec now formalizes.
+
+---
+
+## Planned TypeScript implementation
+
 - `state-detector.ts` — the detector. Host-agnostic, zero deps, fail-closed.
 - `detector-agent.ts` — thin Cloudflare Agents-SDK wrapper (one DO per user).
 
