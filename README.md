@@ -96,7 +96,7 @@ the canonical sibling repos via env vars (or place them as siblings of this
 checkout):
 
 ```bash
-pip install jsonschema pyyaml            # add pytest for the unit suite
+pip install jsonschema pyyaml pytest     # pytest needed only for the unit suite
 export RRT_ADVOCATE_SRC=/path/to/rrt-advocate/src
 export SLEEPWALKER_ROOT=/path/to/sleepwalker
 export PYTHONPATH=reference/python
