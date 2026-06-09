@@ -1,146 +1,163 @@
-# State Detection Layer — WIP v0.1
+# State Detection Layer (SDL)
 
-A conservative, rules-based state detector for the Solidarity Framework. One
-interface, three detectors (RRTA / Sleepwalker / Enabler). Built to be dropped
-into your Cloudflare agent and tested — **not** to ship to real users yet.
+> **Spec:** `NLT-SPEC-SDL-1.0.0` · **Status:** first conformant cut (RRTA + Sleepwalker)
+> **Governance:** ORG-DEV-OTOI-1.0.0 · **Authority:** Joshua W. Dorsey, Sr.
 
----
+A conservative, fail-closed state detector for the Solidarity Framework. It reads
+a turn **before** the host agent calls the model and emits a routing decision —
+how to respond, whether to surface human support, whether to escalate.
 
-## This repo is a spec, not a single codebase
+**This is a safety-critical routing net, not a clinical or diagnostic tool.** It
+performs coarse crisis detection that routes to **human support**. It contains no
+method/means language and makes no diagnostic claims. It is **not** ready to ship
+to real users — see [Status](#status--before-this-ships-to-users).
 
-The SDL is defined as a **language-agnostic specification** + a **conformance
-suite** + one or more **conformant reference implementations**. Any
-implementation, in any language, is "SDL-conformant" iff it passes the
-conformance suite.
+The SDL is a **language-agnostic specification**, not a single file you drop in:
 
-| Part | Where | What |
-|---|---|---|
-| **Spec** | [`spec/nlt-sdl-spec.md`](spec/nlt-sdl-spec.md) · [`spec/detection-result.schema.json`](spec/detection-result.schema.json) | `NLT-SPEC-SDL-1.0.0`: the `DetectionResult` contract + requirements `R1..R25` |
-| **Conformance suite** | [`conformance/`](conformance/README.md) | The safety gate. Every requirement ≥1 vector; fail-closed vectors mandatory |
-| **Python reference** | [`reference/python/nlt_sdl/`](reference/python/nlt_sdl) | Conformant impl that **wraps** the canonical rrt-advocate + sleepwalker detectors behind the contract, with a fail-closed boundary |
-
-```bash
-python conformance/runner/conformance.py --impl python   # the safety gate
-python -m pytest reference/python/tests -q                # policy + fail-closed unit tests
-```
-
-> **Certified on calibration / fail-closed / recall / equivalence — not
-> "accuracy."** Coarse crisis detection → human routing. **Not** a clinical or
-> diagnostic tool.
-
-The TypeScript files below are the **planned host-agnostic implementation** (a
-future conformant impl that must pass the same suite, R25). They describe the
-contract shape this repo's spec now formalizes.
-
----
-
-## Planned TypeScript implementation
-
-- `state-detector.ts` — the detector. Host-agnostic, zero deps, fail-closed.
-- `detector-agent.ts` — thin Cloudflare Agents-SDK wrapper (one DO per user).
-
-## What it emits (the contract)
-
-Every turn returns a `DetectionResult`:
-
-```jsonc
-{
-  "rrta":        { "tier": "orange", "confidence": 0.59, "signals": ["overwhelm","task_paralysis"] },
-  "sleepwalker": { "vulnerable": false, "events": [], "signals": [] },
-  "enabler":     { "risk": "none", "confidence": 0.3, "agencyTrend": 0, "signals": [] },
-  "recommendedMode": "rrta_soft_scaffold",
-  "responseConstraints": ["reduce_to_one_next_step","no_large_lists","preserve_choice","avoid_shame_language"],
-  "suggestedPersona": "kai",
-  "escalateToHuman": false,
-  "meta": { "failClosed": false, "notes": [] }
-}
-```
-
-Your response router consumes `recommendedMode` + `responseConstraints` (and
-`suggestedPersona`) when assembling the model call.
+- **The spec** — a contract (`DetectionResult`) plus normative requirements `R1–R25`.
+- **The conformance suite** — the safety gate. An implementation is "SDL-conformant"
+  only if it passes every vector.
+- **Reference implementation(s)** — currently one, in Python, that *wraps* the
+  canonical `rrt-advocate` and `sleepwalker` detectors behind the contract.
 
 ## The three shapes (why it's not one classifier)
 
-- **Sleepwalker — deterministic.** Fires off *facts* the agent already knows:
-  model/version change, handoff, memory gap (time since last turn), tone shift.
-  The wrapper derives these by diffing `model`/`tone`/timestamp against stored
-  state. Bypasses the confidence floor — these aren't guesses.
-- **RRTA — acute, in-session.** Soft signal groups → graduated yellow/orange.
-  Red/black require an **explicit** hard-distress signal; never inferred from
-  soft overwhelm. Conservative by design.
-- **Enabler — longitudinal.** Reads cross-session counters as a *trend*. Reports
-  low confidence until it's watched `minSessionsForConfidence` sessions. Never
-  labels dependency from a single message.
+The SDL unifies three distinct detection *shapes* behind one output contract:
 
-## Drop it in
+| Shape | Nature | Question it answers |
+|---|---|---|
+| **RRTA** | acute, in-session | "Is this turn in or near crisis right now?" |
+| **Sleepwalker** | deterministic continuity | "Did continuity rupture, or is the user in a protective state?" |
+| **Enabler** | longitudinal agency | "Is this user's agency eroding across sessions?" *(reserved in 1.0.0)* |
 
-In `detector-agent.ts` the Agent is a Durable Object per user. Call `observe(...)`
-each turn **before** you call the model:
+- **RRTA — acute.** Soft signal groups → graduated yellow/orange. Red/black require
+  an **explicit** hard-distress signal; never inferred from soft overwhelm.
+- **Sleepwalker — deterministic.** Fires off *facts* the host already knows
+  (model/version change, handoff, memory gap, tone shift). These bypass the
+  confidence floor — they aren't guesses.
+- **Enabler — longitudinal, reserved.** Contract-only in 1.0.0; ships `risk="none"`.
+  Never labels dependency from a single turn.
 
-```ts
-import { getAgentByName } from "agents";
-const agent = await getAgentByName(env.StateDetectorAgent, userId);
-const detection = await agent.observe({
-  message: userMessage,
-  model: currentModelId,   // diff vs last => model_change
-  tone: currentToneId,     // diff vs last => tone_shift
-  newSession: isNewSession,
-  humanResourceReachable: true,
-  toi: usersToiSupportPrefs,
-});
-// feed detection.recommendedMode + detection.responseConstraints into your router
-```
+## What it emits (the contract)
 
-`wrangler.jsonc`:
+Every observed turn returns a `DetectionResult` validating against
+[`spec/detection-result.schema.json`](spec/detection-result.schema.json):
 
 ```jsonc
 {
-  "compatibility_flags": ["nodejs_compat"],
-  "durable_objects": {
-    "bindings": [{ "name": "StateDetectorAgent", "class_name": "StateDetectorAgent" }]
-  },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["StateDetectorAgent"] }]
+  "rrta":        { "tier": "orange", "confidence": 0.59, "signals": ["overwhelm","task_paralysis"], "explicitSignal": false },
+  "sleepwalker": { "vulnerable": false, "events": [], "signals": [] },
+  "enabler":     { "risk": "none", "confidence": 0.0, "agencyTrend": 0, "signals": [] },
+  "recommendedMode": "rrta_soft_scaffold",
+  "responseConstraints": ["reduce_to_one_next_step","no_large_lists","preserve_choice","avoid_shame_language","slow_pace"],
+  "escalateToHuman": false,
+  "meta": { "failClosed": false, "schemaVersion": "1.0.0", "notes": [] }
 }
 ```
 
-(Do **not** enable `experimentalDecorators` in tsconfig — it breaks `@callable`.)
+The host's response router consumes `recommendedMode` + `responseConstraints` (and
+the optional `suggestedPersona`) when assembling the model call. The detector never
+composes the model response itself.
 
-Run the detector demo standalone: `npx -y tsx state-detector.ts`
+Canonical crisis **tiers** and their numeric ranges are owned by
+`rrt-advocate config/crisis_thresholds.yaml` and consumed here, never reinvented:
 
-## The knobs
+| Tier | Range | Meaning |
+|---|---|---|
+| green | `[0.0, 0.2)` | stable |
+| yellow | `[0.2, 0.4)` | elevated |
+| orange | `[0.4, 0.7)` | high |
+| red | `[0.7, 0.9)` | critical |
+| black | `[0.9, 1.0]` | emergency |
 
-- `CONFIG` in `state-detector.ts` — confidence floor, RRTA signal weights/cutoffs,
-  Enabler session/drift thresholds. In canon these live in
-  `config/crisis_thresholds.yaml`.
-- The signal lexicons (`SOFT_SIGNALS`, `HARD_DISTRESS_SIGNALS`, `ATTACHMENT_SIGNALS`)
-  and the drift-phrase lists in the agent — coarse and tunable.
-- **TODO knob:** counters accumulate with no decay yet. Add per-session decay so
-  old behavior ages out of the trend window.
+## Repository layout
+
+```
+spec/
+  nlt-sdl-spec.md               # NLT-SPEC-SDL-1.0.0 — requirements R1–R25
+  detection-result.schema.json  # the DetectionResult contract (JSON Schema 2020-12)
+conformance/
+  README.md                     # vector format + runner contract
+  runner/conformance.py         # the safety gate
+  vectors/                      # rrta/ sleepwalker/ failclosed/ equivalence/ adversarial/ false-positive/
+reference/python/
+  nlt_sdl/                      # the reference implementation
+    contract.py                 #   policy brain: tier derivation, R11 clamp, routing
+    failclosed.py               #   fail-closed boundary (R20–R24)
+    adapters/                   #   wrappers around canonical rrt-advocate / sleepwalker
+  tests/                        # unit + integration tests
+.github/workflows/conformance.yml
+```
+
+## Run the conformance suite
+
+The reference implementation *wraps* canon — it does not vendor it. Point it at
+the canonical sibling repos via env vars (or place them as siblings of this
+checkout):
+
+```bash
+pip install jsonschema pyyaml            # add pytest for the unit suite
+export RRT_ADVOCATE_SRC=/path/to/rrt-advocate/src
+export SLEEPWALKER_ROOT=/path/to/sleepwalker
+export PYTHONPATH=reference/python
+
+# Conformance (the safety gate)
+python conformance/runner/conformance.py --impl python
+
+# Unit + integration tests
+python -m pytest reference/python/tests -q
+```
+
+Without canon reachable, run the **canon-free gate** — fail-closed vectors still
+run; canon-backed vectors are skipped:
+
+```bash
+python conformance/runner/conformance.py --impl python --skip-requires-canon
+```
+
+CI (`.github/workflows/conformance.yml`) always runs the canon-free gate; the full
+canon-backed suite runs when a `CANON_REPO_TOKEN` secret with read access to
+`rrt-advocate` and `sleepwalker` is present.
+
+> Installing `vaderSentiment` improves Layer 2 calibration but is optional — the
+> routing-critical guarantees do not depend on it.
 
 ## Safety invariants (deliberate — loosen only with eval evidence)
 
 1. Defaults to green/standard; asserts nothing below the confidence floor.
-2. Crisis tier requires an explicit signal — never inferred from soft overwhelm.
-3. On uncertainty the posture is *gentle* (reduce pressure, preserve choice,
-   surface support) — never dramatic, never silent when distress is explicit.
-4. The crisis path **surfaces human support and escalates**. It is a routing net,
-   **not** clinical assessment and **not** a substitute for real crisis services.
-   It contains no method/means language by design.
-5. Longitudinal state holds counts/trends only — no message content.
+2. Crisis tier (red/black) requires an **explicit** signal — never inferred from
+   soft overwhelm (enforced by a confidence clamp; spec **R11**).
+3. On uncertainty the posture is *gentle* — reduce pressure, preserve choice,
+   surface support — never dramatic, never silent when distress is explicit (**R19**).
+4. **Fail-closed (R20–R24).** Any detector that raises, times out, or returns
+   malformed output yields an escalating `meta.failClosed` result. Abstention is
+   always *upward*, never silent green.
+5. **100% recall on explicit signals → human routing (R22).** No explicit
+   hard-distress signal may ever yield `escalateToHuman=false`, even under partial
+   outage. Emergency routing is derivable from signals alone, with no model call (**R23**).
+6. Longitudinal state holds counts/trends only — no message content; results carry
+   no PII (**R4**).
 
-## Notes before this leaves WIP
+## Status — before this ships to users
 
-- **Reconcile against canon:** the RRTA lexicons and tier cutoffs here are my
-  coarse starting point — map them to `config/crisis_thresholds.yaml` and the
-  canonical tier definitions (green/yellow/orange/red/black). Same for the
-  persona→mode mapping (Ash/Sol/Echo/Kai/Myra).
-- **Decoupled from fade-vs-restrict:** the detector only emits `enabler.risk`.
-  The fade-vs-restrict choice governs the *response* ladder downstream, not the
-  detector — so that decision doesn't block this.
-- **The real accuracy ceiling:** a rules engine is the right WIP, but it can't be
-  *accurate* about internal state. Stronger detection is the clinician/eval-data
-  track (mPACT-style ground truth), not a code change. Swap `detectRRTA` for a
-  calibrated classifier behind the same interface when that data exists.
-- **Validation gate:** before real users, this needs adversarial fail-closed
-  tests (detector-down, ambiguous-but-fine ND communication, weak-signal-no-crisis)
-  and a measured false-positive rate. Do not stub those green.
+The spec, conformance suite, and Python reference are merged and green
+(28/28 conformance vectors, 22 unit/integration tests). The following are open and
+**gated on Joshua** (see
+[`docs/agent-log/handoffs/NLT-HND-2026-001-SDL-Build-Kickoff-handback.md`](docs/agent-log/handoffs/NLT-HND-2026-001-SDL-Build-Kickoff-handback.md)):
+
+1. **R11 confidence clamp** — approve/adjust the load-bearing false-positive control.
+2. **Persona→mode mapping** — `suggestedPersona` is currently omitted, not guessed.
+3. **Enabler shape** + the decoupled fade-vs-restrict response ladder.
+4. **`CANON_REPO_TOKEN`** CI secret so CI runs the full canon-backed suite.
+
+Beyond those, a real-user gate still needs adversarial fail-closed coverage and a
+**measured false-positive rate** — do not stub those green. Stronger detection is
+the clinician / eval-data track (mPACT-style ground truth), not a code change:
+swap a detector behind the same contract when that data exists.
+
+## Reconcile against canon
+
+The RRTA lexicons and tier cutoffs live in `rrt-advocate` (lexicons in
+`keyword_layer.py`; tiers/weights in `config/crisis_thresholds.yaml`). Sleepwalker
+wraps `sleepwalker_protocol/state_detection.py`. This layer **consumes** both and
+**invents neither** — no lexicons or thresholds are defined here.
