@@ -1,0 +1,82 @@
+{
+  "handoff_record": {
+    "session_id": "2026-06-23-ts-reference-impl",
+    "agent_name": "Claude Code",
+    "date": "2026-06-23",
+    "otoi_version": "ORG-DEV-OTOI-1.0.2",
+    "repo": "NeuroLift-Technologies/nlt-sdl",
+    "branches": [
+      "claude/ts-reference-impl (PR 5 — TypeScript reference implementation)"
+    ],
+    "summary": "Added reference/typescript/ as @neurolift-technologies/sdl v1.0.0 — the TypeScript reference implementation of NLT-SPEC-SDL-1.0.0. Per Joshua-approved architecture decision 1A, the TS SDL WRAPS the published TS canon packages (@neurolift-technologies/rrt-advocate and @neurolift-technologies/sleepwalker-protocol) and ports ONLY the SDL's own policy brain. It passes the SAME 28 conformance vectors as the Python reference, with field-by-field R25 equivalence confirmed.",
+    "work_completed": [
+      "Built the two TS canon packages first to produce dist/: (cd rrt-advocate/packages/rrt-advocate && npm ci && npm run build) and (cd sleepwalker && npm ci && npm run build). Then wired them into sdl's package.json as file: deps (file:../../../rrt-advocate/packages/rrt-advocate and file:../../../sleepwalker) so sdl installs+imports+tests against the REAL canon dist/. npm install symlinked both into node_modules/@neurolift-technologies/.",
+      "Created reference/typescript/ as @neurolift-technologies/sdl v1.0.0 mirroring the toi/otoi recipe (type:module, publishConfig.access:public, main/types/exports->dist, files:[dist,LICENSE,README.md,schema], scripts prepack/build/typecheck/test, engines node>=18, devDeps @types/node + typescript ^5.6 + vitest ^4.1 + ajv). tsconfig cloned from nlt-toi/packages/toi/tsconfig.json (NodeNext, ES2022, strict, declaration, outDir dist). Copied spec/detection-result.schema.json into the package's schema/ for self-validation.",
+      "src/contract.ts: ported the policy brain verbatim from contract.py — CANONICAL_TIER_RANGES (cites canon config/crisis_thresholds.yaml; YAML not read), deriveTier (half-open [lo,hi), top tier inclusive of 1.0), R12 explicit->black, R11 clamp (<=0.69 with the rrta_confidence_clamped note on raw>=0.7), None-shape fail-closed (RRTA->black/1.0/explicit=false; Sleepwalker->vulnerable=true), the exact routing ladder, and CONSTRAINTS_BY_MODE verbatim.",
+      "src/failclosed.ts: ported the fail-closed boundary — guarded() awaits Promises and catches everything; validateRrtaRaw/validateSleepwalkerRaw enforce the strict shapes (finite aggregate in [0,1], strictly-boolean self_harm/vulnerable/crisis, array fields/events/signals). Error classes are literally named RuntimeError/TimeoutError/ValueError so error.constructor.name matches Python's type(exc).__name__, making the PII-free notes byte-identical (e.g. rrta_failclosed:ValueError for the malformed case).",
+      "src/adapters/rrtaAdapter.ts: wraps canon's CrisisDetector (async). Fault injection checked FIRST (rrtaError->RuntimeError, rrtaTimeout->TimeoutError no real timer, malformedRrta->returns {aggregate:NaN,self_harm:'no',fields:'oops'}). Fresh detector per call. Pins canon Layer 2 to the heuristic fallback (sentimentAnalyzer: null) for deterministic equivalence with the Python VADER-absent path.",
+      "src/adapters/sleepwalkerAdapter.ts: wraps canon's StateDetector (sync) and ports compute_events (host-fact diffing: new_session/model_change/version_change/handoff/tone_shift/memory_gap>604800s). rupture = events ∩ RUPTURE_EVENTS; signals from protective non-neutral stateType; crisis from explicitSuicidalIdeation||selfHarmIndicators||inabilityToEnsureSafety.",
+      "src/index.ts (runVector orchestrator, async), src/conformance-cli.ts (reads one JSON object from stdin, prints the result JSON), src/types.ts (camelCase DetectionResult; snake_case internal raw shapes).",
+      "Wired conformance/runner/conformance.py: added load_typescript_impl (subprocess over node dist/conformance-cli.js, JSON on stdin/stdout) and registered IMPLS['typescript']. This is plain Python (in scope to commit).",
+      "Added test/equivalence.test.ts (vitest): loads every conformance/vectors/**, runs runVector, validates against the schema with ajv (draft 2020-12 via ajv/dist/2020.js), and asserts each expect block. 29 tests pass.",
+      "README.md top banner is the exact prototype/crisis disclaimer (988/911/findahelpline); condensed in package.json description; npm keywords include prototype/not-a-safety-system/not-medical-advice.",
+      "LICENSE: NOT authored. scripts/copy-license.mjs mechanically copies the repo-root Apache-2.0 LICENSE into the package at prepack time; the copy is gitignored.",
+      "Updated docs/active-threads.md (TS reference marked DELIVERED) and added the session registration JSON."
+    ],
+    "work_in_progress": [],
+    "blockers": [],
+    "decisions_made": [
+      "Pinned canon Layer-2 sentiment to the heuristic fallback (sentimentAnalyzer: null) on the TS side. Rationale: vader-sentiment is an optional canon dep and IS installed in rrt-advocate's node_modules, so a bare new CrisisDetector() would auto-load VADER and diverge from the Python reference (which runs the heuristic fallback because vaderSentiment is not installed). The explicit null pin guarantees deterministic R25 equivalence. Do NOT remove it and do NOT install vader-sentiment for the conformance run.",
+      "Named the fail-closed error classes RuntimeError/TimeoutError/ValueError (overriding constructor.name) so the cross-language fail-closed notes are byte-identical to Python's type(exc).__name__.",
+      "Replaced an initial node:fs globSync (Node-22+ only) with a portable recursive directory walk in the vitest test, so the test honors the declared engines.node>=18.",
+      "suggestedPersona is OMITTED (never emitted null), matching the Python reference and the schema.",
+      "Used the package's own .gitignore to keep node_modules/, dist/, *.tsbuildinfo, *.tgz, and the pack-time LICENSE copy out of git."
+    ],
+    "decisions_pending": [
+      "Apply the .github/workflows/conformance.yml matrix change (returned as an artifact in the PR + artifactsForJoshua) — adds Node setup + npm ci/npm run build for reference/typescript and a --impl typescript conformance step. The token lacks the workflow scope, so this could not be committed.",
+      "Publish-prep: swap the two canon file: deps in reference/typescript/package.json to the scoped published versions (@neurolift-technologies/rrt-advocate ^0.1.0, @neurolift-technologies/sleepwalker-protocol ^1.0.0) once both canon packages are published to the registry.",
+      "R11 confidence clamp approval/adjustment (load-bearing) — Joshua (carried over; unchanged here).",
+      "persona->mode mapping (suggestedPersona) — deliberately NOT decided here.",
+      "Enabler / Anti-Dependency shape — reserved in 1.0.0; NOT implemented here."
+    ],
+    "escalations": [
+      "Surfaced (not actioned): the conformance.yml CI edit, the publish-time canon dep swap, and the LICENSE-into-package publish step are all routed to Joshua / a workflow-scoped token rather than committed here."
+    ],
+    "next_agent_notes": "The TS reference WRAPS canon and must never copy canon lexicons/sentiment/behavioral/StateDetector patterns. The build order is: build the two canon packages (npm ci && npm run build) -> npm install in reference/typescript (file: deps need the canon dist/) -> npm run build -> run the conformance runner with --impl typescript. The node-shim impl subprocesses dist/conformance-cli.js, so the TS package MUST be built before --impl typescript will run. Keep the sentimentAnalyzer: null pin and do not install vader-sentiment for conformance.",
+    "files_modified": [
+      "conformance/runner/conformance.py (added load_typescript_impl + IMPLS['typescript'])",
+      "docs/active-threads.md (TS reference marked delivered)",
+      "docs/agent-log/registrations/2026-06-23-claude-ts-reference-impl.json (new)",
+      "docs/agent-log/handoffs/2026-06-23-claude-ts-reference-impl-handoff.json (new, this file)",
+      "reference/typescript/package.json (new)",
+      "reference/typescript/package-lock.json (new)",
+      "reference/typescript/tsconfig.json (new)",
+      "reference/typescript/.gitignore (new)",
+      "reference/typescript/README.md (new)",
+      "reference/typescript/schema/detection-result.schema.json (new, copied from spec/)",
+      "reference/typescript/scripts/copy-license.mjs (new)",
+      "reference/typescript/src/types.ts (new)",
+      "reference/typescript/src/contract.ts (new)",
+      "reference/typescript/src/failclosed.ts (new)",
+      "reference/typescript/src/adapters/rrtaAdapter.ts (new)",
+      "reference/typescript/src/adapters/sleepwalkerAdapter.ts (new)",
+      "reference/typescript/src/index.ts (new)",
+      "reference/typescript/src/conformance-cli.ts (new)",
+      "reference/typescript/test/equivalence.test.ts (new)"
+    ],
+    "tests_run": [
+      "python conformance/runner/conformance.py --impl typescript -> 28/28 vectors passed (against live canon via the built dist/conformance-cli.js).",
+      "python conformance/runner/conformance.py --impl python -> 28/28 vectors passed (baseline, VADER absent -> heuristic fallback).",
+      "python conformance/runner/conformance.py --impl typescript --skip-requires-canon -> 27/27 passed (1 skipped: requiresCanon).",
+      "Cross-impl equivalence harness (Python vs TypeScript over all 28 vectors): routing-critical mismatches (rrta.tier, rrta.explicitSignal, escalateToHuman, sleepwalker.events) = 0; full-object deep-numeric mismatches (incl confidence/mode/constraints/notes) = 0.",
+      "cd reference/typescript && npm run typecheck -> clean (tsc --noEmit, strict).",
+      "cd reference/typescript && npm test (vitest) -> 29 passed (28 vectors + 1 count assertion); each result schema-validated with ajv.",
+      "npm run prepack + npm pack --dry-run -> tarball includes LICENSE (copied from repo root), dist/, schema/, README.md, package.json."
+    ],
+    "tests_passing": true,
+    "environment_note": "Node 24.17.0 / npm 11.13.0. System python is 3.14 without ensurepip; created an isolated venv via 'python3 -m venv --without-pip --system-site-packages .venv', bootstrapped pip with get-pip.py, and installed jsonschema + pytest + pytest-asyncio + pyyaml into it. The .venv is gitignored and not committed. vaderSentiment is intentionally NOT installed on either side (heuristic fallback pinned) for deterministic equivalence.",
+    "pr_urls": [
+      "https://github.com/NeuroLift-Technologies/nlt-sdl/pull/5 (PR 5 — TypeScript reference implementation, DRAFT)"
+    ]
+  }
+}

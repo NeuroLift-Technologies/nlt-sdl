@@ -1,0 +1,31 @@
+{
+  "agent_registration": {
+    "agent_name": "Claude Code",
+    "platform": "claude-code",
+    "version": "Claude Opus 4.8 (1M context)",
+    "session_id": "2026-06-23-ts-reference-impl",
+    "entry_date": "2026-06-23",
+    "entry_point": "Build the TypeScript reference implementation of nlt-sdl (reference/typescript/, @neurolift-technologies/sdl v1.0.0) per Joshua-approved architecture decision 1A: the TS SDL WRAPS the published TS canon packages (@neurolift-technologies/rrt-advocate, @neurolift-technologies/sleepwalker-protocol) and ports only the SDL's OWN policy brain (contract/tiers/R11 clamp/R12 override/routing + the fail-closed boundary + the two canon-wrapping adapters). It must pass the SAME conformance vectors as the Python reference (R25 equivalence).",
+    "acknowledged_otoi": true,
+    "otoi_version": "ORG-DEV-OTOI-1.0.2",
+    "working_repo": "NeuroLift-Technologies/nlt-sdl",
+    "working_branch": "claude/ts-reference-impl",
+    "capabilities_self_reported": [
+      "TypeScript reference implementation against a language-agnostic JSON-Schema contract",
+      "Wrapping (not reimplementing) the canonical TS detectors via file: deps to the real built canon",
+      "Cross-language equivalence verification (Python vs TypeScript over the same conformance vectors)",
+      "Conformance-runner wiring (node-shim subprocess impl) + in-package vitest + ajv schema validation",
+      "Governance-aware session logging"
+    ],
+    "known_limitations": [
+      "No architectural decisions without Joshua approval",
+      "Did NOT copy or port any canon lexicons, sentiment word-sets, behavioral layer, or StateDetector patterns into sdl (canon stays in canon)",
+      "Did NOT implement the Enabler / Anti-Dependency shape (reserved in 1.0.0, Joshua-pending)",
+      "Did NOT decide the persona->mode mapping (suggestedPersona omitted, not guessed)",
+      "Did NOT author or edit any LICENSE file (LICENSE is mechanically copied in at pack time)",
+      "Did NOT add or edit any .github/workflows file (token lacks workflow scope); the conformance.yml change is returned as an artifact",
+      "Pinned canon Layer-2 sentiment to the heuristic fallback (sentimentAnalyzer: null) on the TS side to match the Python reference's VADER-absent path for deterministic equivalence"
+    ],
+    "preferred_handoff_format": "Structured JSON handoff plus concise PR summary"
+  }
+}

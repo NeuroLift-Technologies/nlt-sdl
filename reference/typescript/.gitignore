@@ -1,0 +1,13 @@
+# TypeScript reference build/install artifacts — never committed.
+node_modules/
+dist/
+*.tsbuildinfo
+
+# npm pack output (publish-prep only).
+*.tgz
+
+# LICENSE is mechanically copied in from the repo root at pack time
+# (scripts/copy-license.mjs). It is NOT authored or committed inside the
+# package — the canonical Apache-2.0 LICENSE lives only at the repo root.
+LICENSE
+

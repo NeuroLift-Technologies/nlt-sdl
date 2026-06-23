@@ -1,0 +1,57 @@
+{
+  "name": "@neurolift-technologies/sdl",
+  "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "⚠️ PROTOTYPE — NOT A SAFETY SYSTEM. Reference implementation of the NLT State Detection Layer (NLT-SPEC-SDL-1.0.0): an experimental crisis-detection contract with stubbed intervention layers. It wraps the canonical rrt-advocate and sleepwalker detectors behind a fail-closed boundary. NOT medical advice, NOT a crisis service, NO real-time monitoring. If you need help now: in the US call or text 988, or in an emergency call 911. Provided AS-IS, without warranty.",
+  "keywords": [
+    "nlt-sdl",
+    "state-detection-layer",
+    "crisis-detection",
+    "fail-closed",
+    "neurodivergent",
+    "ai-governance",
+    "solidarity-framework",
+    "haief",
+    "prototype",
+    "not-a-safety-system",
+    "not-medical-advice"
+  ],
+  "license": "Apache-2.0",
+  "author": "NeuroLift Technologies, LLC",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "schema"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepack": "npm run build && node scripts/copy-license.mjs",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@neurolift-technologies/rrt-advocate": "file:../../../rrt-advocate/packages/rrt-advocate",
+    "@neurolift-technologies/sleepwalker-protocol": "file:../../../sleepwalker"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ajv": "^8.17.1",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.7"
+  }
+}

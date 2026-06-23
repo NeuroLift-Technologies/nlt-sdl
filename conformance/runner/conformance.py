@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import subprocess
 import sys
 from typing import Any, Callable
 
@@ -35,8 +36,44 @@ def load_python_impl() -> Callable[[dict[str, Any]], dict[str, Any]]:
     return run_vector
 
 
+def load_typescript_impl() -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """Drive the built TypeScript reference via its conformance CLI shim.
+
+    The TS reference (``reference/typescript``) wraps the published TS canon
+    packages and ports only the SDL's own policy brain. It exposes the same
+    single-turn contract as the Python reference. This impl subprocesses the
+    compiled ``dist/conformance-cli.js``: the vector input is passed as JSON on
+    stdin, and the JSON object on stdout is parsed as the DetectionResult. The
+    same conformance vectors therefore gate both references (R25 equivalence).
+    """
+    cli = REPO_ROOT / "reference" / "typescript" / "dist" / "conformance-cli.js"
+    if not cli.exists():
+        raise FileNotFoundError(
+            f"TypeScript conformance CLI not built at {cli}. "
+            "Run: (cd reference/typescript && npm install && npm run build)"
+        )
+
+    def run_vector(inp: dict[str, Any]) -> dict[str, Any]:
+        proc = subprocess.run(
+            ["node", str(cli)],
+            input=json.dumps(inp),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"typescript conformance-cli exited {proc.returncode}: "
+                f"{proc.stderr.strip()}"
+            )
+        return json.loads(proc.stdout)
+
+    return run_vector
+
+
 IMPLS: dict[str, Callable[[], Callable[[dict[str, Any]], dict[str, Any]]]] = {
     "python": load_python_impl,
+    "typescript": load_typescript_impl,
 }
 
 
