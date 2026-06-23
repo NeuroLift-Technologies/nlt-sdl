@@ -1,5 +1,5 @@
 # CLAUDE.md — nlt-sdl
-## Governance: ORG-DEV-OTOI-1.0.0 | Authority: Joshua W. Dorsey, Sr.
+## Governance: ORG-DEV-OTOI-1.0.2 | Authority: Joshua W. Dorsey, Sr.
 
 Repo-specific context for Claude Code / GitHub Copilot agents operating in
 `nlt-sdl`. Read `AGENTS.md` first (coordination gateway), then this file.

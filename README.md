@@ -1,7 +1,7 @@
 # State Detection Layer (SDL)
 
 > **Spec:** `NLT-SPEC-SDL-1.0.0` · **Status:** first conformant cut (RRTA + Sleepwalker)
-> **Governance:** ORG-DEV-OTOI-1.0.0 · **Authority:** Joshua W. Dorsey, Sr.
+> **Governance:** ORG-DEV-OTOI-1.0.2 · **Authority:** Joshua W. Dorsey, Sr.
 
 A conservative, fail-closed state detector for the Solidarity Framework. It reads
 a turn **before** the host agent calls the model and emits a routing decision —

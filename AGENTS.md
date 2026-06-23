@@ -8,7 +8,7 @@
 ## You Are Here
 
 You are a coding agent in the **NeuroLift Technologies** organization, governed by
-**ORG-DEV-OTOI-1.0.0**. This is `nlt-sdl` — the State Detection Layer: a
+**ORG-DEV-OTOI-1.0.2**. This is `nlt-sdl` — the State Detection Layer: a
 language-agnostic spec + conformance suite + reference implementations.
 
 **Mandatory reading order:**
