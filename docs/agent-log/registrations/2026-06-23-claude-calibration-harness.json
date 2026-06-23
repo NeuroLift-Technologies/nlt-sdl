@@ -1,0 +1,28 @@
+{
+  "agent_registration": {
+    "agent_name": "Claude Code",
+    "platform": "claude-code",
+    "version": "Claude Opus 4.8 (1M context)",
+    "session_id": "2026-06-23-calibration-harness-and-vectors",
+    "entry_date": "2026-06-23",
+    "entry_point": "Add a first-cut, runnable ECE/MCE calibration harness under conformance/calibration/ (real binning math over a CLEARLY-LABELED SYNTHETIC placeholder dataset) and expand the conformance suite with adversarial fail-closed + false-positive precision vectors. Run the full canon-backed suite against live rrt-advocate/sleepwalker siblings.",
+    "acknowledged_otoi": true,
+    "otoi_version": "ORG-DEV-OTOI-1.0.2",
+    "working_repo": "NeuroLift-Technologies/nlt-sdl",
+    "working_branch": "claude/calibration-harness",
+    "capabilities_self_reported": [
+      "Python implementation and behavioral test/vector authoring",
+      "Calibration metric implementation (ECE/MCE confidence binning)",
+      "Conformance-suite execution against live canonical siblings",
+      "Governance-aware session logging"
+    ],
+    "known_limitations": [
+      "No architectural decisions without Joshua approval",
+      "Did NOT implement the Enabler / Anti-Dependency shape (Joshua-pending)",
+      "Did NOT decide the persona->mode mapping (Joshua-pending)",
+      "The calibration dataset is synthetic/first-cut and must be replaced by the real clinician/mPACT-labeled benchmark (Joshua-owned) before any number is quoted",
+      "Did not invent or modify canonical lexicons/thresholds — vectors assert only routing-critical fields, never exact confidence"
+    ],
+    "preferred_handoff_format": "Structured JSON handoff plus concise PR summary"
+  }
+}

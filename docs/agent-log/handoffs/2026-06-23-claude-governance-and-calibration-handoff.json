@@ -1,0 +1,70 @@
+{
+  "handoff_record": {
+    "session_id": "2026-06-23-governance-and-calibration",
+    "agent_name": "Claude Code",
+    "date": "2026-06-23",
+    "otoi_version": "ORG-DEV-OTOI-1.0.2",
+    "repo": "NeuroLift-Technologies/nlt-sdl",
+    "branches": [
+      "claude/governance-align-otoi-102 (PR 1 — governance)",
+      "claude/calibration-harness (PR 2 — calibration + vectors)"
+    ],
+    "summary": "Two independent, serially-delivered draft PRs. PR 1 syncs nlt-sdl to the ORG-DEV-OTOI-1.0.2 governance contract. PR 2 adds a first-cut runnable ECE/MCE calibration harness (real math, synthetic placeholder data) and expands the conformance suite with adversarial fail-closed + false-positive precision vectors.",
+    "work_completed": [
+      "PR 1: Added NLT-DEV-OTOI.md at repo root, copied byte-identical (matching SHA-256) from canon (sleepwalker/NLT-DEV-OTOI.md, Document ID ORG-DEV-OTOI-1.0.2). Verified the copied contract carries NO wrong-repo identifier — grepped for nlt-sdl/rrt-advocate/sleepwalker/.github-private; the only repo references are the canonical document home (Repository: NeuroLift-Technologies/.github-private, correct) and a generic [e.g. NeuroLift-Technologies/some-repo] template placeholder. This guards against the known sync bug that injected .github-private as a repo's own identity into rrt-advocate/nltotoi.json.",
+      "PR 1: Bumped the governance-version references ORG-DEV-OTOI-1.0.0 -> 1.0.2 in README.md, CLAUDE.md, AGENTS.md (one line each). Deliberately left NLT-SPEC-SDL-1.0.0 and the 'reserved in 1.0.0' Enabler notes untouched — those are not governance-version references.",
+      "PR 1: Created docs/agent-log/registrations/ and backfilled this session's registration JSON, matching the sleepwalker registration shape.",
+      "PR 2: Added conformance/calibration/calibration.py — a runnable ECE/MCE harness with REAL equal-width confidence binning (not a stub). ECE = sample-weighted mean per-bin |accuracy - mean_confidence|; MCE = worst per-bin gap. Verified independently against a hand-computed re-implementation.",
+      "PR 2: Added conformance/calibration/dataset.synthetic.json — a CLEARLY-LABELED first-cut synthetic placeholder (42 (confidence,label) pairs) carrying _README/_warning markers. The harness prints a WARNING whenever it loads synthetic data.",
+      "PR 2: Added conformance/calibration/README.md documenting the metrics, the run commands, and the synthetic-must-be-replaced caveat.",
+      "PR 2: Expanded conformance vectors by 12 (28 -> 40). Adversarial (conformance/vectors/adversarial/ambiguous.json): +6 — ND info-dump / step-by-step structure need / masking fatigue stay calm (precision); RRTA-down on a benign turn still fails closed; an explicit signal survives Sleepwalker outage (requiresCanon); an explicit message under RRTA timeout still escalates + fails closed without falsely claiming explicitSignal (abstain-upward). False-positive (conformance/vectors/false-positive/benign.json): +6 — figurative 'killing me' / 'could murder a pizza' / 'code is dead' / 'dead tired' and resilient-setback turns stay green/standard. All new vectors assert ONLY routing-critical fields (tier/tierAtMost, explicitSignal, escalateToHuman, meta.failClosed) and NEVER exact confidence.",
+      "PR 2: Created docs/agent-log/registrations/ + backfilled the calibration session registration; wrote this combined handoff."
+    ],
+    "work_in_progress": [],
+    "blockers": [],
+    "decisions_made": [
+      "Treated NLT-DEV-OTOI.md's 'Repository: NeuroLift-Technologies/.github-private' header as CORRECT (it declares where the canonical master copy lives) — the contract is org-level/repo-agnostic, so it carries no per-repo identifier and is copied verbatim. This is exactly what the already-governed sleepwalker repo carries.",
+      "For adversarial escalation vectors under RRTA outage, asserted escalateToHuman=true + meta.failClosed=true but NOT rrta.explicitSignal=true. Probing showed RRTA-down loses the explicit-signal observation while still abstaining upward; asserting explicitSignal=true there would have been false. Only the RRTA-alive / Sleepwalker-down case keeps explicitSignal=true and is flagged requiresCanon.",
+      "Calibration math/labels are separated: the math is real and reusable; only the labels are placeholder. When the real benchmark exists, --dataset is repointed with no code change."
+    ],
+    "decisions_pending": [
+      "R11 confidence clamp approval/adjustment (load-bearing false-positive control) — Joshua.",
+      "persona->mode mapping (suggestedPersona) — deliberately NOT decided here; remains omitted, not guessed.",
+      "Enabler / Anti-Dependency shape + decoupled fade-vs-restrict response ladder — deliberately NOT implemented here.",
+      "Replace conformance/calibration/dataset.synthetic.json with the real clinician/mPACT-labeled benchmark (Joshua-owned) before any calibration figure is quoted.",
+      "CANON_REPO_TOKEN CI secret so CI runs the full canon-backed suite — Joshua.",
+      "Per-repo governance auto-propagation is blocked (no ORG_GOVERNANCE_TOKEN); PR 1 is a manual per-repo sync pending the sync-tooling fix."
+    ],
+    "escalations": [
+      "Surfaced (not actioned): the calibration benchmark, persona->mode mapping, and the Enabler shape remain Joshua-pending and were intentionally left untouched per the repo hard rules."
+    ],
+    "next_agent_notes": "PR 1 (governance) and PR 2 (calibration + vectors) are independent — do not fold them together. PR 2 does NOT change reference/ code, the schema, or any threshold/lexicon; it only adds vectors + the calibration harness. The new requiresCanon adversarial vector is correctly skipped by the canon-free CI gate. Do NOT replace the synthetic dataset with anything other than the real Joshua-owned benchmark.",
+    "files_modified": [
+      "NLT-DEV-OTOI.md (PR 1, new)",
+      "README.md (PR 1)",
+      "CLAUDE.md (PR 1)",
+      "AGENTS.md (PR 1)",
+      "docs/agent-log/registrations/2026-06-23-claude-governance-align-otoi-102.json (PR 1, new)",
+      "conformance/calibration/calibration.py (PR 2, new)",
+      "conformance/calibration/dataset.synthetic.json (PR 2, new)",
+      "conformance/calibration/README.md (PR 2, new)",
+      "conformance/vectors/adversarial/ambiguous.json (PR 2)",
+      "conformance/vectors/false-positive/benign.json (PR 2)",
+      "docs/agent-log/registrations/2026-06-23-claude-calibration-harness.json (PR 2, new)",
+      "docs/agent-log/handoffs/2026-06-23-claude-governance-and-calibration-handoff.json (PR 2, new)"
+    ],
+    "tests_run": [
+      "Full canon-backed conformance (live rrt-advocate + sleepwalker siblings): python conformance/runner/conformance.py --impl python -> 40/40 vectors passed (28 existing + 12 new).",
+      "Canon-free gate: python conformance/runner/conformance.py --impl python --skip-requires-canon -> 38/38 passed (2 skipped: requiresCanon).",
+      "Unit/integration: python -m pytest reference/python/tests -q -> 22 passed.",
+      "Calibration harness: python conformance/calibration/calibration.py -> ECE = 0.0707, MCE = 0.1550 over 42 SYNTHETIC samples / 10 bins (smoke-test of the math, not a measurement). Independently re-derived ECE/MCE by hand to confirm.",
+      "Baseline (pre-change) on the same canon: 28/28 conformance + 22 pytest, confirming the new vectors are additive and nothing regressed."
+    ],
+    "tests_passing": true,
+    "environment_note": "System python is 3.14 without ensurepip; created an isolated venv via 'python3 -m venv --without-pip --system-site-packages .venv' then bootstrapped pip with get-pip.py, installed pytest-asyncio + vaderSentiment into it. The .venv was removed before committing and is gitignored — nothing venv-related is committed.",
+    "pr_urls": [
+      "https://github.com/NeuroLift-Technologies/nlt-sdl/pull/3 (PR 1 — governance)",
+      "PR 2 — calibration + vectors (URL recorded at creation)"
+    ]
+  }
+}

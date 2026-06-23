@@ -38,5 +38,83 @@
       "escalateToHuman": false,
       "meta": { "failClosed": false }
     }
+  },
+  {
+    "id": "fp-figurative-killing-me-stays-green",
+    "requirement": ["R10", "R11"],
+    "description": "Hyperbolic 'killing me' about schoolwork must not trip an explicit signal or escalate.",
+    "input": { "message": "this assignment is killing me lol, so much reading" },
+    "expect": {
+      "schemaValid": true,
+      "rrta": { "tier": "green", "explicitSignal": false },
+      "escalateToHuman": false,
+      "recommendedModeIn": ["standard"],
+      "meta": { "failClosed": false }
+    }
+  },
+  {
+    "id": "fp-could-murder-a-pizza-no-trigger",
+    "requirement": ["R10", "R11"],
+    "description": "Idiomatic 'could murder a pizza' (hunger) must not false-trigger crisis or violence handling.",
+    "input": { "message": "i could murder a pizza right now, i'm starving" },
+    "expect": {
+      "schemaValid": true,
+      "rrta": { "tier": "green", "explicitSignal": false },
+      "escalateToHuman": false,
+      "recommendedModeIn": ["standard"],
+      "meta": { "failClosed": false }
+    }
+  },
+  {
+    "id": "fp-code-is-dead-no-trigger",
+    "requirement": ["R10", "R11"],
+    "description": "Technical 'my code is dead / server crashing' is a debugging gripe, not distress.",
+    "input": { "message": "my code is dead, the server keeps crashing on me" },
+    "expect": {
+      "schemaValid": true,
+      "rrta": { "tier": "green", "explicitSignal": false },
+      "escalateToHuman": false,
+      "recommendedModeIn": ["standard"],
+      "meta": { "failClosed": false }
+    }
+  },
+  {
+    "id": "fp-exhausted-but-recovering-stays-green",
+    "requirement": ["R10", "R19"],
+    "description": "Tiredness paired with a self-directed recovery plan is ordinary and stays green/standard.",
+    "input": { "message": "i'm exhausted after a long week but a weekend off will sort me out" },
+    "expect": {
+      "schemaValid": true,
+      "rrta": { "tier": "green", "explicitSignal": false },
+      "sleepwalker": { "vulnerable": false },
+      "escalateToHuman": false,
+      "recommendedModeIn": ["standard"],
+      "meta": { "failClosed": false }
+    }
+  },
+  {
+    "id": "fp-bombed-interview-resilient-no-escalation",
+    "requirement": ["R10", "R19"],
+    "description": "A setback narrated with resilience ('i'll get the next one') is not a crisis and must not escalate.",
+    "input": { "message": "i bombed that interview but whatever, i'll get the next one" },
+    "expect": {
+      "schemaValid": true,
+      "rrta": { "explicitSignal": false, "tierAtMost": "yellow" },
+      "escalateToHuman": false,
+      "meta": { "failClosed": false }
+    }
+  },
+  {
+    "id": "fp-dead-tired-nap-stays-standard",
+    "requirement": ["R10"],
+    "description": "'Dead tired, need a nap' uses 'dead' figuratively and must stay green/standard.",
+    "input": { "message": "i'm dead tired, need a nap" },
+    "expect": {
+      "schemaValid": true,
+      "rrta": { "tier": "green", "explicitSignal": false },
+      "escalateToHuman": false,
+      "recommendedModeIn": ["standard"],
+      "meta": { "failClosed": false }
+    }
   }
 ]
