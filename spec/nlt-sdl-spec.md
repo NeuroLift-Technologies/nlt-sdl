@@ -1,6 +1,6 @@
 # NLT-SPEC-SDL-1.0.0 — State Detection Layer Specification
 
-> **Governance:** ORG-DEV-OTOI-1.0.0 · **Authority:** Joshua W. Dorsey, Sr.
+> **Governance:** ORG-DEV-OTOI-1.0.2 · **Authority:** Joshua W. Dorsey, Sr.
 > **Status:** Draft for review (first conformant cut: RRTA + Sleepwalker)
 > **Schema:** [`detection-result.schema.json`](./detection-result.schema.json) (JSON Schema draft 2020-12)
 
