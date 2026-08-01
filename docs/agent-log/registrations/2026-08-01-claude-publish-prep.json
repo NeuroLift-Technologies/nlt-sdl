@@ -1,0 +1,32 @@
+{
+  "agent_registration": {
+    "agent_name": "Claude Code",
+    "platform": "claude-code",
+    "version": "Claude Opus 4.8 (1M context)",
+    "session_id": "2026-08-01-publish-prep",
+    "entry_date": "2026-08-01",
+    "entry_point": "npm publish prep for the TypeScript reference implementation (reference/typescript/, @neurolift-technologies/sdl v1.0.0), per Joshua's authorization recorded in docs/agent-log/approvals/vibe-approval.txt. Tasks: (1) swap the two canon file: deps in package.json to published npm versions (^0.1.0 / ^1.0.0), (2) apply the .github/workflows/conformance.yml matrix change to gate the TS reference alongside Python in CI, (3) regenerate package-lock.json, (4) verify the TS reference still passes all 28 conformance vectors. WRAPS canon; does NOT copy/reimplement canon detectors, lexicons, thresholds, or add diagnostic/method-means logic.",
+    "acknowledged_otoi": true,
+    "otoi_version": "ORG-DEV-OTOI-1.0.2",
+    "working_repo": "NeuroLift-Technologies/nlt-sdl",
+    "working_branch": "claude/otoi-1.0.2-sweep",
+    "capabilities_self_reported": [
+      "TypeScript/npm publish-prep (dependency swaps, lockfile regen, CI matrix wiring)",
+      "Verifying cross-implementation conformance parity (Python vs TypeScript over the same vectors)",
+      "Wraps (never reimplements) canonical detectors",
+      "Governance-aware session logging"
+    ],
+    "known_limitations": [
+      "No architectural decisions without Joshua approval",
+      "Will NOT copy or port any canon lexicons, sentiment word-sets, behavioral layer, or StateDetector patterns into sdl (canon stays in canon)",
+      "Will NOT modify, copy, or reimplement the canonical rrt-advocate / sleepwalker detectors",
+      "Will NOT invent thresholds or lexicons — consumes them from canon",
+      "Will NOT weaken any fail-closed test or stub green",
+      "Will NOT add diagnostic logic or any method/means content",
+      "Will NOT touch LICENSE files — routes to GHCPT or Joshua",
+      "Cannot commit CI workflow changes without a workflow-scoped token (will author the change as a draft artifact per handoff protocol)",
+      "Pinned canon Layer-2 sentiment to the heuristic fallback (sentimentAnalyzer: null) on the TS side to match the Python reference's VADER-absent path for deterministic equivalence"
+    ],
+    "preferred_handoff_format": "Structured JSON handoff plus concise PR summary"
+  }
+}

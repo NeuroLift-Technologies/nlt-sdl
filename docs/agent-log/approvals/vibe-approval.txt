@@ -1,0 +1,1 @@
+I, Joshua W. Dorsey, the Owner of NeuroLift Technologies, is authorizing Mistral Vibe CLI to proceed with the npm publish prep work that is needed to make it ready for public publish.
