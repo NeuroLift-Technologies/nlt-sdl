@@ -6,7 +6,7 @@
 |---|---|---|---|
 | `NLT-HND-2026-001-SDL-Build-Kickoff` | **In review (draft PR)** | Claude Code | First cut: spec (NLT-SPEC-SDL-1.0.0) + conformance suite + RRTA & Sleepwalker Python reference adapters. Handback in `docs/agent-log/handoffs/`. |
 | `ts-reference-impl` | **In review (draft PR)** | Claude Code | TypeScript reference (`reference/typescript/`, `@neurolift-technologies/sdl` v1.0.0). WRAPS the published TS canon packages; ports only the SDL's own policy brain. Passes the SAME 40 vectors as the Python reference (R25 equivalence verified). Branch `claude/ts-reference-impl`. Decision 1A (Joshua-approved). |
-| `sdl-publish-prep` | **In progress** | Claude Code | npm publish-prep for the TS reference (branch `claude/otoi-1.0.2-sweep`). Joshua-authorized via `docs/agent-log/approvals/vibe-approval.txt`. Swap canon `file:` deps → `^0.1.0`/`^1.0.0`; regenerate lockfile; add TS to `.github/workflows/conformance.yml` matrix. TS: 40/40 vectors + 41/41 vitest verified. |
+| `sdl-publish-prep` | **Complete (draft PR #7)** | Claude Code | npm publish-prep for both references (branch `claude/otoi-1.0.2-sweep`). Joshua-authorized via `docs/agent-log/approvals/vibe-approval.txt`. (1) TS: swapped canon `file:` deps → `^0.1.0`/`^1.0.0` from npm; (2) Python: switched to wrapping published PyPI packages (`rrt-advocate` v0.1.1, `sleepwalker-protocol` v1.0.1); (3) CI matrix runs all 40 vectors for both impls unconditionally (no CANON_REPO_TOKEN needed). Both: 40/40 conformance + full unit suites pass. |
 
 ## Open / deferred
 
@@ -25,18 +25,15 @@
   Verified: `npm run build` (clean) + `npm test` (41/41 vitest) +
   `--impl typescript` (40/40 conformance). The TS reference wraps **published npm**
   canon packages, so it runs the full suite without checking out private source repos.
-- **Python reference canon resolution (BLOCKER — pre-existing, escalated)** —
-  The canonical repos were restructured (rrt-advocate commit `eb1592d`: "archive
-  legacy Python, rewrite docs to match published APIs"), archiving the legacy
-  `crisis` package and moving `sleepwalker_protocol` to `src/`. The Python
-  reference's `_canon.py` + adapters still import the old `crisis.detectors...`
-  and `sleepwalker_protocol` (root) paths. The fail-closed boundary behaves
-  **correctly** (safe escalation to human, never silent green), but the full
-  Python suite (40 vectors) cannot resolve canon in the current environment.
-  The canon-free gate passes for both impls (TS: 5/5 + 40/40; Python: 5/5).
-  Updating the Python adapter import paths to match the new canonical repo
-  layout is a **separate task requiring Joshua's direction** (touches canon
-  resolution semantics) — do not bundle with publish-prep.
+- **Python reference canon resolution — ✅ RESOLVED** — The Python reference now
+  wraps the PUBLISHED PyPI packages (`rrt-advocate` v0.1.1, `sleepwalker-protocol`
+  v1.0.1) instead of the restructured local source repos. `_canon.py` resolves
+  PyPI packages first (with legacy source fallback for local dev), `rrta_adapter.py`
+  imports `from rrt_advocate` with `sentiment_analyzer=None` (heuristic fallback
+  pin, matching the TS reference's `sentimentAnalyzer: null`), and `load_tier_ranges()`
+  reads the bundled YAML via `importlib.resources`. Full Python conformance: **40/40**
+  (was 10/40 failing closed). Both references now wrap published packages (PyPI + npm)
+  and share a CI matrix that runs all 40 vectors unconditionally — no CANON_REPO_TOKEN needed.
 - **Calibration measurement (ECE/MCE)** — the certification target includes
   calibration of `confidence`, including within the high-risk band. A measurement
   harness is not yet in this repo; tracked for a follow-up thread.
