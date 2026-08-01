@@ -1,10 +1,19 @@
 """
-RRTA adapter — wraps rrt-advocate's canonical 3-layer CrisisDetector.
+RRTA adapter — wraps rrt-advocate's canonical 3-layer CrisisDetector (published
+PyPI package ``rrt_advocate``).
 
 It does NOT reimplement detection. It calls the canonical detector, reads its
 ``CrisisIndicators``, and returns the coarse raw shape the contract assembler
 consumes. Tier ranges are loaded from the canonical
-``config/crisis_thresholds.yaml`` so the SDL never invents thresholds.
+``config/crisis_thresholds.yaml`` (bundled in the PyPI package) so the SDL
+never invents thresholds.
+
+Determinism note: ``vader-sentiment`` is an OPTIONAL dependency of canon. When
+reachable, ``CrisisDetector()`` auto-loads it; when absent, canon uses its
+heuristic fallback. To keep cross-language equivalence with the TypeScript
+reference (which pins ``sentimentAnalyzer: null``), this adapter passes
+``sentiment_analyzer=None`` to force the heuristic fallback. Do NOT remove this
+pin and do NOT install vader-sentiment for the conformance run.
 
 Fault injection (``input.inject``) lets the conformance suite exercise the
 fail-closed boundary without modifying canonical source.
@@ -12,8 +21,6 @@ fail-closed boundary without modifying canonical source.
 
 from __future__ import annotations
 
-import asyncio
-import os
 from typing import Any, Optional
 
 from .. import _canon
@@ -31,10 +38,13 @@ def load_tier_ranges() -> list[tuple[str, float, float]]:
     try:
         import yaml  # local import: optional at contract level
 
-        yaml_path = os.path.join(
-            os.path.dirname(_canon.rrta_src()), "config", "crisis_thresholds.yaml"
+        import importlib.resources as resources
+
+        yaml_ref = (
+            resources.files("rrt_advocate")
+            .joinpath("config/crisis_thresholds.yaml")
         )
-        with open(yaml_path, "r", encoding="utf-8") as fh:
+        with yaml_ref.open("r", encoding="utf-8") as fh:
             data = yaml.safe_load(fh)
         levels = data["crisis_levels"]
         ranges: list[tuple[str, float, float]] = []
@@ -64,11 +74,15 @@ def detect_rrta(inp: dict[str, Any]) -> dict[str, Any]:
         return {"aggregate": float("nan"), "self_harm": "no", "fields": "oops"}
 
     _canon.ensure_rrta()
-    from crisis.detectors.crisis_detector import CrisisDetector  # type: ignore
+    from rrt_advocate import CrisisDetector  # type: ignore
 
-    detector = CrisisDetector()
+    # Pin Layer 2 to canon's heuristic fallback (sentiment_analyzer=None) for
+    # deterministic cross-language equivalence with the TS reference, which pins
+    # sentimentAnalyzer: null. Do NOT remove this pin and do NOT install
+    # vader-sentiment for the conformance run.
+    detector = CrisisDetector(sentiment_analyzer=None)
     message = inp.get("message") or ""
-    indicators = asyncio.run(detector.detect_crisis_indicators(message))
+    indicators = detector.detect_crisis_indicators(message)
 
     return {
         "aggregate": float(indicators.aggregate_confidence),

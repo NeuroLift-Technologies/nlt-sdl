@@ -11,6 +11,11 @@ license = { text = "SEE LICENSE IN ../../LICENSE" }
 dependencies = [
   "jsonschema>=4.0",
   "pyyaml>=6.0",
+  # Canonical detectors are consumed as PUBLISHED PyPI packages (WRAPPED,
+  # never reimplemented). The SDL does NOT own their lexicons, thresholds, or
+  # detection logic — it consumes them behind the fail-closed boundary.
+  "rrt-advocate>=0.1.0",
+  "sleepwalker-protocol>=1.0.0",
 ]
 
 [project.optional-dependencies]
