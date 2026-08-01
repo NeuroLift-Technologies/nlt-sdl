@@ -17,7 +17,9 @@ The SDL is a **language-agnostic specification**, not a single file you drop in:
 - **The spec** — a contract (`DetectionResult`) plus normative requirements `R1–R25`.
 - **The conformance suite** — the safety gate. An implementation is "SDL-conformant"
   only if it passes every vector.
-- **Reference implementation(s)** — currently one, in Python, that *wraps* the
+- **Reference implementations** — currently two and R25-equivalent: a Python reference (`reference/python/`) and a TypeScript reference
+  (`reference/typescript/`, package `@neurolift-technologies/sdl`), both of
+  which *wrap* the
   canonical `rrt-advocate` and `sleepwalker` detectors behind the contract.
 
 ## The three shapes (why it's not one classifier)
@@ -78,7 +80,8 @@ spec/
   detection-result.schema.json  # the DetectionResult contract (JSON Schema 2020-12)
 conformance/
   README.md                     # vector format + runner contract
-  runner/conformance.py         # the safety gate
+  runner/conformance.py         # the safety gate (gates python + typescript)
+  calibration/                  # ECE/MCE harness (synthetic-only by default; smoke test)
   vectors/                      # rrta/ sleepwalker/ failclosed/ equivalence/ adversarial/ false-positive/
 reference/python/
   nlt_sdl/                      # the reference implementation
@@ -86,6 +89,17 @@ reference/python/
     failclosed.py               #   fail-closed boundary (R20–R24)
     adapters/                   #   wrappers around canonical rrt-advocate / sleepwalker
   tests/                        # unit + integration tests
+reference/typescript/
+  package.json                  # @neurolift-technologies/sdl
+  src/
+    contract.ts                 # policy brain: tier derivation, R11 clamp, R12, routing
+    failclosed.ts               # fail-closed boundary (R20–R24)
+    types.ts                    # DetectionResult contract bindings
+    index.ts                    # runVector orchestrator
+    conformance-cli.ts          # subprocess entry for the conformance runner
+    adapters/                   # wrappers around canonical rrt-advocate / sleepwalker (npm)
+  test/equivalence.test.ts      # R25 equivalence vs the Python reference
+  schema/detection-result.schema.json
 .github/workflows/conformance.yml
 ```
 
@@ -140,20 +154,32 @@ canon-backed suite runs when a `CANON_REPO_TOKEN` secret with read access to
 
 ## Status — before this ships to users
 
-The spec, conformance suite, and Python reference are merged and green
-(28/28 conformance vectors, 22 unit/integration tests). The following are open and
+The spec, conformance suite, and both reference implementations are merged and
+green (40/40 conformance vectors each; Python: 22 unit/integration tests;
+TypeScript: 41 vitest). The following are open and
 **gated on Joshua** (see
 [`docs/agent-log/handoffs/NLT-HND-2026-001-SDL-Build-Kickoff-handback.md`](docs/agent-log/handoffs/NLT-HND-2026-001-SDL-Build-Kickoff-handback.md)):
 
 1. **R11 confidence clamp** — approve/adjust the load-bearing false-positive control.
 2. **Persona→mode mapping** — `suggestedPersona` is currently omitted, not guessed.
-3. **Enabler shape** + the decoupled fade-vs-restrict response ladder.
+3. **Enabler shape (reserved, contract-only — R17/R18).** The longitudinal
+   `enabler` shape ships `risk="none"` and is **not implemented** in 1.0.0; the
+   fade-vs-restrict *response* decision is decoupled and **deferred to Joshua**
+   (do not implement without his direction). See `spec/nlt-sdl-spec.md` (R17/R18)
+   and `CLAUDE.md`.
 4. **`CANON_REPO_TOKEN`** CI secret so CI runs the full canon-backed suite.
 
 Beyond those, a real-user gate still needs adversarial fail-closed coverage and a
 **measured false-positive rate** — do not stub those green. Stronger detection is
 the clinician / eval-data track (mPACT-style ground truth), not a code change:
 swap a detector behind the same contract when that data exists.
+
+> **Calibration harness (first cut, synthetic-only).**
+> `conformance/calibration/` implements the ECE/MCE measurement the spec calls
+> for, but its default dataset (`dataset.synthetic.json`) is hand-authored and
+> synthetic — a smoke test of the math, **not** a calibration measurement. Do
+> not quote its output. The real benchmark is the Joshua-owned clinician /
+> mPACT-labeled track (see `conformance/calibration/README.md`).
 
 ## Reconcile against canon
 
