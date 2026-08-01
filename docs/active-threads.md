@@ -6,7 +6,7 @@
 |---|---|---|---|
 | `NLT-HND-2026-001-SDL-Build-Kickoff` | **In review (draft PR)** | Claude Code | First cut: spec (NLT-SPEC-SDL-1.0.0) + conformance suite + RRTA & Sleepwalker Python reference adapters. Handback in `docs/agent-log/handoffs/`. |
 | `ts-reference-impl` | **In review (draft PR)** | Claude Code | TypeScript reference (`reference/typescript/`, `@neurolift-technologies/sdl` v1.0.0). WRAPS the published TS canon packages; ports only the SDL's own policy brain. Passes the SAME 40 vectors as the Python reference (R25 equivalence verified). Branch `claude/ts-reference-impl`. Decision 1A (Joshua-approved). |
-| `sdl-publish-prep` | **Complete (draft PR #7)** | Claude Code | npm publish-prep for both references (branch `claude/otoi-1.0.2-sweep`). Joshua-authorized via `docs/agent-log/approvals/vibe-approval.txt`. (1) TS: swapped canon `file:` deps → `^0.1.0`/`^1.0.0` from npm; (2) Python: switched to wrapping published PyPI packages (`rrt-advocate` v0.1.1, `sleepwalker-protocol` v1.0.1); (3) CI matrix runs all 40 vectors for both impls unconditionally (no CANON_REPO_TOKEN needed). Both: 40/40 conformance + full unit suites pass. |
+| `sdl-publish-prep` | **Complete (draft PR #7)** | poolside | npm publish-prep for both references (branch `claude/otoi-1.0.2-sweep`). Joshua-authorized via `docs/agent-log/approvals/vibe-approval.txt`. (1) TS: swapped canon `file:` deps → `^0.1.0`/`^1.0.0` from npm; (2) Python: switched to wrapping published PyPI packages (`rrt-advocate` v0.1.1, `sleepwalker-protocol` v1.0.1); (3) CI matrix runs all 40 vectors for both impls unconditionally (no CANON_REPO_TOKEN needed). Both: 40/40 conformance + full unit suites pass. |
 
 ## Open / deferred
 
