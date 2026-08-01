@@ -1,11 +1,11 @@
 {
   "agent_registration": {
-    "agent_name": "Claude Code",
-    "platform": "claude-code",
-    "version": "Claude Opus 4.8 (1M context)",
+    "agent_name": "poolside",
+    "platform": "poolside",
+    "version": "poolside-agent (Poolside harness)",
     "session_id": "2026-08-01-publish-prep",
     "entry_date": "2026-08-01",
-    "entry_point": "npm publish prep for the TypeScript reference implementation (reference/typescript/, @neurolift-technologies/sdl v1.0.0), per Joshua's authorization recorded in docs/agent-log/approvals/vibe-approval.txt. Tasks: (1) swap the two canon file: deps in package.json to published npm versions (^0.1.0 / ^1.0.0), (2) apply the .github/workflows/conformance.yml matrix change to gate the TS reference alongside Python in CI, (3) regenerate package-lock.json, (4) verify the TS reference still passes all 28 conformance vectors. WRAPS canon; does NOT copy/reimplement canon detectors, lexicons, thresholds, or add diagnostic/method-means logic.",
+    "entry_point": "npm/PyPI publish-prep for BOTH reference implementations (@neurolift-technologies/sdl v1.0.0 for TS, nlt-sdl-reference for Python), per Joshua's authorization recorded in docs/agent-log/approvals/vibe-approval.txt. Tasks: (1) TS: swap canon file: deps to published npm versions (^0.1.0 / ^1.0.0), regenerate lockfile; (2) Python: switch to wrapping published PyPI packages (rrt-advocate, sleepwalker-protocol) — fix broken source-path imports; (3) simplify .github/workflows/conformance.yml to a [python, typescript] matrix running all 40 vectors unconditionally (no CANON_REPO_TOKEN); (4) verify both references pass all 40 conformance vectors (R25 equivalence). WRAPS canon; does NOT copy/reimplement canon detectors, lexicons, thresholds, or add diagnostic/method-means logic.",
     "acknowledged_otoi": true,
     "otoi_version": "ORG-DEV-OTOI-1.0.2",
     "working_repo": "NeuroLift-Technologies/nlt-sdl",
@@ -13,7 +13,7 @@
     "capabilities_self_reported": [
       "TypeScript/npm publish-prep (dependency swaps, lockfile regen, CI matrix wiring)",
       "Verifying cross-implementation conformance parity (Python vs TypeScript over the same vectors)",
-      "Wraps (never reimplements) canonical detectors",
+      "Wraps (never reimplements) canonical detectors via published package deps (npm for TS, PyPI for Python)",
       "Governance-aware session logging"
     ],
     "known_limitations": [
@@ -24,8 +24,7 @@
       "Will NOT weaken any fail-closed test or stub green",
       "Will NOT add diagnostic logic or any method/means content",
       "Will NOT touch LICENSE files — routes to GHCPT or Joshua",
-      "Cannot commit CI workflow changes without a workflow-scoped token (will author the change as a draft artifact per handoff protocol)",
-      "Pinned canon Layer-2 sentiment to the heuristic fallback (sentimentAnalyzer: null) on the TS side to match the Python reference's VADER-absent path for deterministic equivalence"
+      "Pinned canon Layer-2 sentiment to the heuristic fallback (sentimentAnalyzer: null for TS, sentiment_analyzer=None for Python) to match the VADER-absent path in both references for deterministic R25 equivalence"
     ],
     "preferred_handoff_format": "Structured JSON handoff plus concise PR summary"
   }
