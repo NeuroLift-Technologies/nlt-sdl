@@ -1,0 +1,56 @@
+{
+  "handoff_record": {
+    "session_id": "2026-08-01-sdl-docs-assurance",
+    "agent_name": "poolside",
+    "date": "2026-08-01T21:23:15Z",
+    "otoi_version": "ORG-DEV-OTOI-1.0.2",
+    "repo": "NeuroLift-Technologies/nlt-sdl",
+    "branch": "poolside/doc-readme-assurance",
+    "summary": "Docs-assurance follow-up tied to the Vibe Technical Assurance Agent review of the TypeScript reference + conformance work. PR #8 (agent-identity claude->poolside) was merged first; draft PR #9 addresses the three required-before-merge documentation updates: (1) README repository layout now includes the TypeScript reference and the calibration harness; (2) added a calibration synthetic-only limitation note; (3) consolidated the Enabler reservation status (R17/R18, contract-only, not implemented, fade-vs-restrict deferred to Joshua). Docs-only: no reference/ or spec/ source changes.",
+    "work_completed": [
+      "Merged PR #8 (docs-only agent-identity correction via squash commit fd97b03; branch poolside/doc-identity-fix deleted).",
+      "Opened draft PR #9: docs(readme): TS reference, calibration limitation, Enabler reservation (commit 76b4088).",
+      "Updated README.md repository layout to document reference/typescript/ and conformance/calibration/.",
+      "Added a Status-section note that the calibration harness is synthetic-only / smoke-test (default dataset.synthetic.json); real benchmark is the Joshua-owned clinician/mPACT track; linked conformance/calibration/README.md.",
+      "Consolidated the Enabler reservation status in the README Status section (R17/R18, contract-only in 1.0.0, ships risk='none', NOT implemented, fade-vs-restrict response decision deferred to Joshua).",
+      "Updated README intro + Status to describe both references as R25-equivalent (Python + TypeScript) and corrected the vector count to 40/40 each.",
+      "Ran canon-free conformance gate on main: 38/38 passed (2 requiresCanon skipped in this env)."
+    ],
+    "work_in_progress": [
+      "Draft PR #9 pending review/merge (docs-only, all CI checks green incl. conformance python + typescript).",
+      "Optional follow-ups deferred: refresh README 'Run the conformance suite' section for the published-PyPI/npm canon wiring; centralise MEMORY_GAP_SECONDS / SCHEMA_VERSION (reference code changes, out of scope here)."
+    ],
+    "blockers": [],
+    "decisions_made": [
+      "Kept PR #9 strictly docs-only (README.md) — did NOT touch reference/ or spec/ source, so the conformance-suite gate in CLAUDE.md (Key Commands) does not trigger; ran the canon-free gate as a sanity check only.",
+      "Documented the Enabler shape reservation status only — did NOT implement it (Joshua's call per AGENTS.md escalation trigger).",
+      "Did not rewrite README 'Run the conformance suite' section: it still describes legacy env-var / CANON_REPO_TOKEN canon resolution. That wording is stale but the canon-resolution wiring is governance-sensitive, so it is flagged as a separate follow-up rather than edited here.",
+      "Left the optional node_modules gitignore item untouched — reference/typescript/.gitignore already ignores node_modules/, dist/, *.tsbuildinfo."
+    ],
+    "decisions_pending": [
+      "Merge of draft PR #9 (docs-only; awaiting principal/Gatekeeper review).",
+      "Follow-up doc PR to refresh README 'Run the conformance suite' for the published-package canon wiring (publish-prep complete via PR #7).",
+      "npm publish of @neurolift-technologies/sdl (publish-prep complete; authorized via docs/agent-log/approvals/vibe-approval.txt).",
+      "pip publish of nlt-sdl-reference (optional).",
+      "R11 confidence clamp approval/adjustment (load-bearing).",
+      "persona->mode mapping (suggestedPersona — omitted, not guessed).",
+      "Enabler / Anti-Dependency shape — reserved; awaiting Joshua direction (implementation).",
+      "Calibration measurement harness — real clinician/mPPT benchmark data (Joshua-owned)."
+    ],
+    "escalations": [
+      "None escalated this session. The Enabler item was DOCUMENTED (reservation status) only; implementing the Enabler shape or the fade-vs-restrict response decision is explicitly deferred to Joshua per AGENTS.md and was not attempted."
+    ],
+    "next_agent_notes": "main is at fd97b03 (PR #8 merged) + 76b4088 on branch poolside/doc-readme-assurance (draft PR #9, docs-only README updates). No canon/spec/reference source changes were made this session. All CI on PR #9 passes, including conformance (python) and conformance (typescript) at 40/40 each (R25 equivalence confirmed); a local canon-free sanity run showed 38/38 (2 requiresCanon skipped). The full 40/40 pass for both implementations is documented in the prior publish-prep handoff (2026-08-01-claude-sdl-publish-prep.json) and the Vibe Technical Assurance review. The Vibe review's 3 required doc items are addressed in PR #9. Pending follow-up: a separate doc PR to update README's 'Run the conformance suite' section away from the legacy env-var/CANON_REPO_TOKEN wording now that CI wires both references to published PyPI/npm canon packages.",
+    "files_modified": [
+      "README.md (PR #9: repository layout += TS reference + calibration; Status += both-references/40x40; calibration synthetic-only note; Enabler R17/R18 reservation consolidation)",
+      "docs/agent-log/handoffs/2026-08-01-sdl-docs-assurance-handoff.json (this record)"
+    ],
+    "tests_run": [
+      "python conformance/runner/conformance.py --impl python --skip-requires-canon: 38/38 passed (2 requiresCanon skipped in this env)",
+      "CI on PR #9: conformance (python) PASS, conformance (typescript) PASS (both 40/40)",
+      "(Referenced, from prior work) Python 40/40 + 22/22 pytest; TypeScript 40/40 + 41/41 vitest — per publish-prep handoff + Vibe review"
+    ],
+    "tests_passing": "Canon-free gate green (38/38 locally); full 40/40 for both implementations green in CI on PR #9 and per the prior Vibe assurance review (R25 equivalence confirmed). No source changes this session, so no regressions possible.",
+    "pr_url": "https://github.com/NeuroLift-Technologies/nlt-sdl/pull/9 (draft)"
+  }
+}
