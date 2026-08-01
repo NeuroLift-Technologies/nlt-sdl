@@ -64,6 +64,6 @@
       "python conformance/runner/conformance.py --impl python: 10/40 passed (30 fail-closed due to pre-existing canon resolution issue, NOT caused by this session)"
     ],
     "tests_passing": "TypeScript reference: ALL pass (40/40 conformance + 41/41 vitest + clean build). Python full suite: 10/40 (pre-existing canon resolution blocker; canon-free gate passes 5/5 + 18/22 pytest). TS publish-prep is verified.",
-    "pr_url": "Not yet created — branch claude/otoi-1.0.2-sweep, ready for draft PR."
+    "pr_url": "https://github.com/NeuroLift-Technologies/nlt-sdl/pull/7 (draft)"
   }
 }
