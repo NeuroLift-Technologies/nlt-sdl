@@ -2,14 +2,18 @@ name: SDL Conformance
 
 # The conformance suite is the safety gate. It runs on every PR and push.
 #
+# Both reference implementations (Python and TypeScript) wrap the PUBLISHED
+# canonical packages — PyPI for Python (rrt-advocate, sleepwalker-protocol) and
+# npm for TypeScript. Neither requires checking out the private canonical
+# source repos; the canonical detectors are consumed as versioned dependencies.
+#
 # Two layers of assurance:
-#   1. Pure policy + fail-closed unit tests and the fault-injection conformance
-#      vectors run with NO canonical sources required.
-#   2. The full conformance suite + canon-backed integration tests run after
-#      checking out the sibling canonical repos. Those are PRIVATE, so this needs
-#      a token with read access to NeuroLift-Technologies/rrt-advocate and
-#      /sleepwalker, stored as the CANON_REPO_TOKEN secret. If the secret is
-#      absent the canon-backed steps are skipped (the canon-free gate still runs).
+#   1. Canon-free gate: pure policy + fail-closed unit tests and the
+#      fault-injection conformance vectors (no canonical sources required).
+#   2. Full conformance suite: all 40 vectors against published canonical
+#      packages — runs unconditionally for both implementations.
+#
+# R25 equivalence: both references are gated by the SAME conformance vectors.
 
 on:
   pull_request:
@@ -19,56 +23,72 @@ on:
 jobs:
   conformance:
     runs-on: ubuntu-latest
-    env:
-      # Hoisted to env so it can be used in step `if:` conditions
-      # (the `secrets` context is not allowed directly in `if`).
-      CANON_REPO_TOKEN: ${{ secrets.CANON_REPO_TOKEN }}
+    strategy:
+      # Run both reference implementations in parallel. A failure in one
+      # must not cancel the other, so fail-fast is disabled.
+      fail-fast: false
+      matrix:
+        impl: [python, typescript]
     steps:
       - name: Checkout nlt-sdl
         uses: actions/checkout@v4
         with:
           path: nlt-sdl
 
+      # --- Common setup ---------------------------------------------------
+      # Python is needed for the conformance runner itself (conformance.py)
+      # regardless of which implementation is under test — the runner
+      # subprocesses the TS CLI via `node` and validates results with jsonschema.
+      # The Python reference wraps the PUBLISHED PyPI canonical packages
+      # (rrt-advocate, sleepwalker-protocol), so no private source checkout
+      # is needed and no CANON_REPO_TOKEN is required.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
-        run: pip install jsonschema pyyaml pytest
+      - name: Install Python dependencies (SDL reference + canonical PyPI packages)
+        run: pip install jsonschema pyyaml pytest rrt-advocate sleepwalker-protocol
 
-      # --- Canon-free gate (always runs) -------------------------------------
-      - name: Unit tests (policy + fail-closed)
+      # --- TypeScript-specific setup -------------------------------------
+      # The TS reference wraps the published npm canon packages
+      # (@neurolift-technologies/rrt-advocate and -sleepwalker-protocol).
+      # No canonical source checkout is required.
+      - name: Set up Node.js
+        if: matrix.impl == 'typescript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: nlt-sdl/reference/typescript/package-lock.json
+
+      - name: Install & build TypeScript reference
+        if: matrix.impl == 'typescript'
+        working-directory: nlt-sdl/reference/typescript
+        run: |
+          npm ci
+          npm run build
+
+      # --- Canon-free gate (always runs, no canonical repos needed) -------
+      - name: Python unit tests (policy + fail-closed)
+        if: matrix.impl == 'python'
         working-directory: nlt-sdl
         run: python -m pytest reference/python/tests -q
+
+      - name: TypeScript in-package conformance (vitest)
+        if: matrix.impl == 'typescript'
+        working-directory: nlt-sdl/reference/typescript
+        run: npm test
 
       - name: Fail-closed conformance vectors (no canon needed)
         working-directory: nlt-sdl
         run: >-
           python conformance/runner/conformance.py
-          --impl python --category failclosed --skip-requires-canon
+          --impl ${{ matrix.impl }} --category failclosed --skip-requires-canon
 
-      # --- Canon-backed full suite (requires CANON_REPO_TOKEN) ---------------
-      - name: Checkout canonical rrt-advocate
-        if: ${{ env.CANON_REPO_TOKEN != '' }}
-        uses: actions/checkout@v4
-        with:
-          repository: NeuroLift-Technologies/rrt-advocate
-          token: ${{ env.CANON_REPO_TOKEN }}
-          path: rrt-advocate
-
-      - name: Checkout canonical sleepwalker
-        if: ${{ env.CANON_REPO_TOKEN != '' }}
-        uses: actions/checkout@v4
-        with:
-          repository: NeuroLift-Technologies/sleepwalker
-          token: ${{ env.CANON_REPO_TOKEN }}
-          path: sleepwalker
-
-      - name: Full conformance suite (against canon)
-        if: ${{ env.CANON_REPO_TOKEN != '' }}
+      # --- Full conformance suite ---
+      # Both references wrap PUBLISHED canonical packages, so the full suite
+      # (all 40 vectors, including requiresCanon) runs unconditionally for both.
+      - name: Full conformance suite (all vectors)
         working-directory: nlt-sdl
-        env:
-          RRT_ADVOCATE_SRC: ${{ github.workspace }}/rrt-advocate/src
-          SLEEPWALKER_ROOT: ${{ github.workspace }}/sleepwalker
-        run: python conformance/runner/conformance.py --impl python
+        run: python conformance/runner/conformance.py --impl ${{ matrix.impl }}

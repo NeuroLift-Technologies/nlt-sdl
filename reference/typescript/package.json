@@ -45,8 +45,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@neurolift-technologies/rrt-advocate": "file:../../../rrt-advocate/packages/rrt-advocate",
-    "@neurolift-technologies/sleepwalker-protocol": "file:../../../sleepwalker"
+    "@neurolift-technologies/rrt-advocate": "^0.1.0",
+    "@neurolift-technologies/sleepwalker-protocol": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -1,0 +1,80 @@
+{
+  "handoff_record": {
+    "session_id": "2026-08-01-sdl-publish-prep",
+    "agent_name": "Claude Code",
+    "date": "2026-08-01T00:20:35-04:00",
+    "otoi_version": "ORG-DEV-OTOI-1.0.2",
+    "repo": "NeuroLift-Technologies/nlt-sdl",
+    "branch": "claude/otoi-1.0.2-sweep",
+    "summary": "Completed the npm/PyPI publish-prep for BOTH reference implementations of the SDL (NLT-SPEC-SDL-1.0.0), per Joshua's authorization recorded in docs/agent-log/approvals/vibe-approval.txt. (1) TypeScript reference: swapped canon file: deps to published npm versions (^0.1.0/^1.0.0). (2) Python reference: switched to wrapping published PyPI packages (rrt-advocate v0.1.1, sleepwalker-protocol v1.0.1) — resolved the pre-existing Python canon resolution failure (was 10/40 → now 40/40). (3) Converted .github/workflows/conformance.yml to a [python, typescript] matrix running all 40 vectors unconditionally for both impls (no CANON_REPO_TOKEN needed — both wrap published packages). Both references now pass all 40 conformance vectors (R25 equivalence confirmed) with full unit suites passing.",
+    "work_completed": [
+      "Swapped @neurolift-technologies/rrt-advocate from 'file:../../../rrt-advocate/packages/rrt-advocate' to '^0.1.0' in reference/typescript/package.json",
+      "Swapped @neurolift-technologies/sleepwalker-protocol from 'file:../../../sleepwalker' to '^1.0.0' in reference/typescript/package.json",
+      "Verified both TS canon packages are published on npm (rrt-advocate@0.1.1, sleepwalker-protocol@1.0.2)",
+      "Clean-reinstalled TS reference deps (rm -rf node_modules package-lock.json && npm install) — 64 packages, 0 vulnerabilities, resolved from registry.npmjs.org",
+      "Verified dist/conformance-cli.js builds cleanly (npm run build / tsc, strict)",
+      "Ran vitest in-package suite: 41/41 passed (40 vectors + count assertion), each result schema-validated with ajv",
+      "Ran full TS conformance suite (--impl typescript): 40/40 vectors passed",
+      "Ran TS fail-closed gate (--impl typescript --category failclosed --skip-requires-canon): 5/5 passed (1 skipped: requiresCanon)",
+      "Added rrt-advocate>=0.1.0 and sleepwalker-protocol>=1.0.0 to reference/python/pyproject.toml dependencies",
+      "Rewrote reference/python/nlt_sdl/_canon.py: resolves published PyPI packages first via importlib, with legacy source checkout fallback (env vars + sibling src/ dirs) for local development",
+      "Updated reference/python/nlt_sdl/adapters/rrta_adapter.py: import from rrt_advocate (was crisis.detectors.crisis_detector); CrisisDetector(sentiment_analyzer=None) pin (heuristic fallback, matching TS sentimentAnalyzer: null); sync detect_crisis_indicators (was asyncio.run); crisis_thresholds.yaml via importlib.resources (was filesystem path)",
+      "Verified reference/python/nlt_sdl/adapters/sleepwalker_adapter.py: no changes needed — import from sleepwalker_protocol.state_detection was already correct for the PyPI package; _canon.ensure_sleepwalker() now resolves the PyPI package",
+      "Ran full Python conformance suite (--impl python): 40/40 vectors passed (was 10/40 before PyPI switch — 30 fail-closed vectors now pass)",
+      "Ran Python unit tests (pytest): 22/22 passed (was 18 passed + 4 failed — all 4 integration tests now pass with PyPI canon)",
+      "Ran Python fail-closed gate (--impl python --category failclosed --skip-requires-canon): 5/5 passed (1 skipped: requiresCanon)",
+      "Simplified .github/workflows/conformance.yml: [python, typescript] matrix with both impls installing published canonical packages (pip + npm) and running all 40 vectors unconditionally — removed CANON_REPO_TOKEN / canon repo checkout steps (no longer needed)",
+      "Updated docs/active-threads.md: marked sdl-publish-prep complete, resolved Python canon resolution blocker",
+      "Logged self-registration at docs/agent-log/registrations/2026-08-01-claude-publish-prep.json"
+    ],
+    "work_in_progress": [],
+    "blockers": [],
+    "decisions_made": [
+      "Used caret ranges ^0.1.0 / ^1.0.0 for npm deps (per active-threads.md + 2026-06-23 handoff intent), resolving to rrt-advocate@0.1.1 and sleepwalker-protocol@1.0.2 from npm. Caret ranges allow future patch/minor canon updates without an SDL change.",
+      "Used >=0.1.0 / >=1.0.0 for PyPI deps in pyproject.toml, same rationale.",
+      "Pinned heuristic fallback in BOTH references (TS: sentimentAnalyzer: null, Python: sentiment_analyzer=None) for deterministic R25 cross-language equivalence. Do NOT remove the pin and do NOT install vader-sentiment.",
+      "Switched Python detect_crisis_indicators from asyncio.run() to direct sync call — the published PyPI CrisisDetector.detect_crisis_indicators() is synchronous (not async).",
+      "Used importlib.resources to read crisis_thresholds.yaml from the bundled PyPI package config (no filesystem path dependency on source repos). Falls back to CANONICAL_TIER_RANGES constants if unreadable.",
+      "Simplified CI: removed CANON_REPO_TOKEN / canon repo checkout steps. Both references wrap published packages, so all 40 vectors run unconditionally for both. Eliminates the dependency on private canonical source repos in CI.",
+      "Did NOT modify the sentimentAnalyzer: null pin in the TS rrtaAdapter — it was carried over from the TS reference delivery and guarantees deterministic equivalence.",
+      "Ran a clean npm install (rm -rf node_modules package-lock.json) after the package.json swap — npm install alone left stale file: resolution entries in the lockfile from the previous install."
+    ],
+    "decisions_pending": [
+      "npm publish of @neurolift-technologies/sdl to the npm registry — should proceed after CI passes with the new matrix.",
+      "pip publish of nlt-sdl-reference to PyPI — the Python reference package can also be published now that it depends on canonical PyPI packages rather than source trees.",
+      "R11 confidence clamp approval/adjustment (load-bearing) — carried over from the TS reference delivery handoff.",
+      "persona->mode mapping (suggestedPersona) — deliberately NOT decided; omitted, not guessed.",
+      "Enabler / Anti-Dependency shape — reserved in 1.0.0; NOT implemented.",
+      "Calibration measurement harness (ECE/MCE) — tracked for a follow-up thread."
+    ],
+    "escalations": [
+      "RESOLVED (was escalated): Python reference canon resolution was broken by the rrt-advocate repo restructuring. The user directed the fix: wrap the published PyPI packages instead of the restructured source repos. This was implemented in this session (not a unilateral architectural decision — the user explicitly directed it). The fail-closed boundary was operating correctly throughout; now that the PyPI packages are installed, both references pass all 40 vectors."
+    ],
+    "next_agent_notes": "Both reference implementations now wrap PUBLISHED canonical packages (npm for TypeScript, PyPI for Python) and pass ALL 40 conformance vectors with full unit suites (Python: 40/40 + 22/22 pytest; TypeScript: 40/40 + 41/41 vitest). The CI matrix runs both unconditionally — no CANON_REPO_TOKEN or private canon repo checkouts needed. Next steps: (1) review draft PR #7, (2) once CI is green, proceed with npm publish of @neurolift-technologies/sdl AND consider pip publish of nlt-sdl-reference, (3) the Enabler/Anti-Dependency shape remains reserved (Joshua-pending). Both references must continue to WRAP canon (never copy/reimplement lexicons, sentiment, or detector internals) — heuristic fallback pins must stay. The Python adapter uses importlib.resources for the bundled crisis_thresholds.yaml; the YAML values match CANONICAL_TIER_RANGES exactly. If canon repos are restructured again, the PyPI packages will be republished (this is the benefit of versioned package deps over source checkouts).",
+    "files_modified": [
+      "reference/typescript/package.json (modified: canon file: deps -> ^0.1.0/^1.0.0)",
+      "reference/typescript/package-lock.json (regenerated: resolved from npm registry)",
+      "reference/python/pyproject.toml (modified: added rrt-advocate>=0.1.0, sleepwalker-protocol>=1.0.0 deps)",
+      "reference/python/nlt_sdl/_canon.py (rewritten: PyPI-first resolution with legacy source fallback)",
+      "reference/python/nlt_sdl/adapters/rrta_adapter.py (modified: import from rrt_advocate, sentiment_analyzer=None pin, sync call, importlib.resources YAML)",
+      ".github/workflows/conformance.yml (modified: [python, typescript] matrix, both wrap published packages, all 40 vectors unconditional)",
+      "docs/active-threads.md (modified: updated thread status, resolved Python canon blocker)",
+      "docs/agent-log/registrations/2026-08-01-claude-publish-prep.json (new: self-registration)",
+      "docs/agent-log/approvals/vibe-approval.txt (new: Joshua's authorization for publish-prep)",
+      "docs/agent-log/handoffs/2026-08-01-claude-sdl-publish-prep.json (new: this handoff)"
+    ],
+    "tests_run": [
+      "npm install (reference/typescript): 64 packages, 0 vulnerabilities, all from registry.npmjs.org",
+      "npm run build (reference/typescript): tsc compiled cleanly (strict mode, no errors)",
+      "npm test / vitest (reference/typescript): 41/41 passed (40 vectors + count assertion); each result schema-validated with ajv (draft 2020-12)",
+      "python conformance/runner/conformance.py --impl typescript: 40/40 vectors passed (full suite, includes requiresCanon)",
+      "python conformance/runner/conformance.py --impl typescript --category failclosed --skip-requires-canon: 5/5 passed (1 skipped: requiresCanon)",
+      "python -m pytest reference/python/tests -q: 22/22 passed (was 18 passed + 4 failed before PyPI switch)",
+      "python conformance/runner/conformance.py --impl python --category failclosed --skip-requires-canon: 5/5 passed (1 skipped: requiresCanon)",
+      "python conformance/runner/conformance.py --impl python: 40/40 vectors passed (was 10/40 before PyPI switch — 30 previously fail-closed vectors now pass)",
+      "pip install -e reference/python/: nlt-sdl-reference installed, deps resolved (rrt-advocate 0.1.1, sleepwalker-protocol 1.0.1)"
+    ],
+    "tests_passing": "ALL tests pass for BOTH references: Python 40/40 conformance + 22/22 pytest; TypeScript 40/40 conformance + 41/41 vitest. R25 equivalence confirmed. CI matrix runs all 40 vectors unconditionally for both impls.",
+    "pr_url": "https://github.com/NeuroLift-Technologies/nlt-sdl/pull/7 (draft)"
+  }
+}
