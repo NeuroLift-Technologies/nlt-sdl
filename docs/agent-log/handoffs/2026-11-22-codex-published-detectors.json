@@ -1,0 +1,41 @@
+{
+  "handoff_record": {
+    "session_id": "codex-sdl-published-detectors-2026-11-22",
+    "agent_name": "Codex / OpenAI Codex",
+    "date": "2026-11-22T17:02:44-05:00",
+    "otoi_version": "ORG-DEV-OTOI-1.0.4",
+    "repo": "NeuroLift-Technologies/nlt-sdl",
+    "branch": "codex/retire-sdl-source-fallback",
+    "work_completed": [
+      "Removed the Python source-path fallback and updated detector imports, CI install steps, and current documentation.",
+      "Enabled four integration tests that had required source checkouts and added a missing-package regression test.",
+      "Reconciled three merged threads. PR #11 is independent and passed its own TypeScript verification."
+    ],
+    "work_in_progress": [
+      "Maintainer review"
+    ],
+    "blockers": [],
+    "decisions_made": [
+      "Use installed canonical detectors. Local detector development can install checkouts into the same virtual environment."
+    ],
+    "decisions_pending": [],
+    "escalations": [],
+    "next_agent_notes": "The supported Python compatibility checks used installed rrt-advocate 0.1.1 and sleepwalker-protocol 1.0.1. ADR-001 alert interfaces, routing policy, and clinical calibration are outside this PR.",
+    "files_modified": [
+      ".github/workflows/conformance.yml",
+      "AGENTS.md",
+      "CLAUDE.md",
+      "README.md",
+      "docs/active-threads.md",
+      "docs/agent-log/registrations/2026-11-22-codex-published-detectors.json",
+      "reference/python/nlt_sdl/_canon.py",
+      "reference/python/nlt_sdl/adapters/rrta_adapter.py",
+      "reference/python/nlt_sdl/adapters/sleepwalker_adapter.py",
+      "reference/python/tests/test_integration.py",
+      "reference/typescript/README.md"
+    ],
+    "tests_run": "Python 3.10\u20133.14 clean installs, 23 pytest tests and 40 conformance vectors each, fail-closed gates, TypeScript 41 tests and 40 conformance vectors, package builds and diff check.",
+    "tests_passing": true,
+    "pr_url": null
+  }
+}

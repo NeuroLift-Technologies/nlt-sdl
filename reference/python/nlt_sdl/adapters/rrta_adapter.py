@@ -23,7 +23,6 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from .. import _canon
 from ..contract import CANONICAL_TIER_RANGES
 
 _TIER_NAMES = ("green", "yellow", "orange", "red", "black")
@@ -73,7 +72,7 @@ def detect_rrta(inp: dict[str, Any]) -> dict[str, Any]:
         # validator must reject this (R20) rather than coerce it.
         return {"aggregate": float("nan"), "self_harm": "no", "fields": "oops"}
 
-    _canon.ensure_rrta()
+    # Keep the import within the fail-closed boundary.
     from rrt_advocate import CrisisDetector  # type: ignore
 
     # Pin Layer 2 to canon's heuristic fallback (sentiment_analyzer=None) for

@@ -60,6 +60,13 @@ Escalate to Joshua immediately when:
 5. Record a handoff/handback in docs/agent-log/handoffs/
 ```
 
+## Pull requests and reviews
+
+Use the [organization agent pull request template](https://github.com/NeuroLift-Technologies/.github/blob/main/templates/agent-pull-request-template.md)
+and follow [REVIEW.md](REVIEW.md) for agent reviews. The
+[ORG-DEV-OTOI-1.0.4 organization contract](https://github.com/NeuroLift-Technologies/.github/blob/main/governance.yaml)
+sets the required minimum.
+
 ## Commit format
 
 ```
