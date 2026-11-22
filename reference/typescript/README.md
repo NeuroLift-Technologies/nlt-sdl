@@ -95,21 +95,12 @@ python conformance/runner/conformance.py --impl python       # baseline
 
 ## Dependency wiring (canon)
 
-During development this package depends on the local canon checkouts via `file:`
-links so it installs, imports, and tests against the **real** built canon
-detectors:
+The reference installs the canonical detectors from npm:
 
-```json
-"@neurolift-technologies/rrt-advocate": "file:../../../rrt-advocate/packages/rrt-advocate",
-"@neurolift-technologies/sleepwalker-protocol": "file:../../../sleepwalker"
-```
+- `@neurolift-technologies/rrt-advocate` (`^0.1.0`)
+- `@neurolift-technologies/sleepwalker-protocol` (`^1.0.0`)
 
-> **Publish-prep (do before publishing this package):** swap these two `file:`
-> deps to the **scoped published versions** —
-> `@neurolift-technologies/rrt-advocate: ^0.1.0` and
-> `@neurolift-technologies/sleepwalker-protocol: ^1.0.0` — once both canon
-> packages are published to the registry. The `file:` form is for local,
-> against-the-real-canon development only.
+Use `npm ci` to install the versions in the lockfile.
 
 ## Licensing & packaging
 

@@ -47,8 +47,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Python dependencies (SDL reference + canonical PyPI packages)
-        run: pip install jsonschema pyyaml pytest rrt-advocate sleepwalker-protocol
+      - name: Install Python reference with test dependencies
+        working-directory: nlt-sdl
+        run: python -m pip install "./reference/python[dev]"
 
       # --- TypeScript-specific setup -------------------------------------
       # The TS reference wraps the published npm canon packages
@@ -69,8 +70,8 @@ jobs:
           npm ci
           npm run build
 
-      # --- Canon-free gate (always runs, no canonical repos needed) -------
-      - name: Python unit tests (policy + fail-closed)
+      # --- Reference unit and integration tests ----------------------------
+      - name: Python unit and integration tests
         if: matrix.impl == 'python'
         working-directory: nlt-sdl
         run: python -m pytest reference/python/tests -q

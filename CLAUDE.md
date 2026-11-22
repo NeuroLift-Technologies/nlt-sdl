@@ -64,26 +64,24 @@ truth), not a code change here: swap a detector behind the same contract.
 
 ## How the Python reference resolves canon
 
-The adapters locate the sibling canonical repos via, in order:
-1. Env vars `RRT_ADVOCATE_SRC` (→ `rrt-advocate/src`) and `SLEEPWALKER_ROOT`
-   (→ `sleepwalker`).
-2. Sibling directories next to the `nlt-sdl` checkout.
-
-If canon cannot be imported, the boundary fails closed (escalates) rather than
-returning a silent green. Missing canon is safe by construction.
+Install the Python reference with `python -m pip install "./reference/python[dev]"`.
+Its package manifest declares the published RRTA and Sleepwalker dependencies.
+For development against a detector checkout, install that detector package into
+the same virtual environment. Detector imports stay inside the guarded adapter
+calls so a missing package produces a fail-closed result.
 
 ---
 
 ## Key commands
 
 ```bash
-# Full conformance suite (needs sibling canon checkouts)
+# Full conformance suite (install the Python reference first)
 python conformance/runner/conformance.py --impl python
 
 # Canon-free gate (fault-injection vectors only)
 python conformance/runner/conformance.py --impl python --category failclosed
 
-# Unit tests (policy + fail-closed; no canon needed)
+# Unit and integration tests (published detector dependencies required)
 python -m pytest reference/python/tests -q
 ```
 

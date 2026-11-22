@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from .. import _canon
 from ..contract import RUPTURE_EVENTS
 
 # A memory gap longer than this (seconds) is treated as a continuity rupture.
@@ -57,7 +56,7 @@ def detect_sleepwalker(inp: dict[str, Any]) -> dict[str, Any]:
     events = compute_events(inp)
     rupture = bool(set(events) & RUPTURE_EVENTS)
 
-    _canon.ensure_sleepwalker()
+    # Keep the import within the fail-closed boundary.
     from sleepwalker_protocol.state_detection import StateDetector  # type: ignore
 
     detector = StateDetector()

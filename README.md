@@ -105,36 +105,27 @@ reference/typescript/
 
 ## Run the conformance suite
 
-The reference implementation *wraps* canon — it does not vendor it. Point it at
-the canonical sibling repos via env vars (or place them as siblings of this
-checkout):
+Install the Python reference and its development extra. The reference adapters
+use the published RRTA and Sleepwalker packages declared in each manifest.
 
 ```bash
-pip install jsonschema pyyaml pytest     # pytest needed only for the unit suite
-export RRT_ADVOCATE_SRC=/path/to/rrt-advocate/src
-export SLEEPWALKER_ROOT=/path/to/sleepwalker
-export PYTHONPATH=reference/python
-
-# Conformance (the safety gate)
+python -m pip install "./reference/python[dev]"
+python -m pytest reference/python/tests -q
 python conformance/runner/conformance.py --impl python
 
-# Unit + integration tests
-python -m pytest reference/python/tests -q
+(cd reference/typescript && npm ci && npm run build && npm test)
+python conformance/runner/conformance.py --impl typescript
 ```
 
-Without canon reachable, run the **canon-free gate** — fail-closed vectors still
-run; canon-backed vectors are skipped:
+CI runs all 40 vectors for both references using registry packages. For a local
+fault-injection check, run:
 
 ```bash
-python conformance/runner/conformance.py --impl python --skip-requires-canon
+python conformance/runner/conformance.py --impl python --category failclosed --skip-requires-canon
 ```
 
-CI (`.github/workflows/conformance.yml`) always runs the canon-free gate; the full
-canon-backed suite runs when a `CANON_REPO_TOKEN` secret with read access to
-`rrt-advocate` and `sleepwalker` is present.
-
-> Installing `vaderSentiment` improves Layer 2 calibration but is optional — the
-> routing-critical guarantees do not depend on it.
+Both adapters pin RRTA's heuristic sentiment path for deterministic
+cross-language equivalence.
 
 ## Safety invariants (deliberate — loosen only with eval evidence)
 
@@ -155,7 +146,7 @@ canon-backed suite runs when a `CANON_REPO_TOKEN` secret with read access to
 ## Status — before this ships to users
 
 The spec, conformance suite, and both reference implementations are merged and
-green (40/40 conformance vectors each; Python: 22 unit/integration tests;
+green (40/40 conformance vectors each; Python: 23 unit/integration tests;
 TypeScript: 41 vitest). The following are open and
 **gated on Joshua** (see
 [`docs/agent-log/handoffs/NLT-HND-2026-001-SDL-Build-Kickoff-handback.md`](docs/agent-log/handoffs/NLT-HND-2026-001-SDL-Build-Kickoff-handback.md)):
@@ -167,7 +158,6 @@ TypeScript: 41 vitest). The following are open and
    fade-vs-restrict *response* decision is decoupled and **deferred to Joshua**
    (do not implement without his direction). See `spec/nlt-sdl-spec.md` (R17/R18)
    and `CLAUDE.md`.
-4. **`CANON_REPO_TOKEN`** CI secret so CI runs the full canon-backed suite.
 
 Beyond those, a real-user gate still needs adversarial fail-closed coverage and a
 **measured false-positive rate** — do not stub those green. Stronger detection is
