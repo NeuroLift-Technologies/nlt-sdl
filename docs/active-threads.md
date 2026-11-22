@@ -8,7 +8,7 @@
 **Branch:** `codex/retire-sdl-source-fallback`
 **Task:** Verify published detector dependencies and remove retired Python source discovery.
 **Scope:** Python adapters and integration tests, conformance setup, and dependency docs.
-**Related PR:** Pending.
+**Related PR:** [#14](https://github.com/NeuroLift-Technologies/nlt-sdl/pull/14).
 **Started:** 2026-11-22
 **Last updated:** 2026-11-22
 **Next action:** Review the dependency cleanup PR.
